@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>薄荷绿记账 - 教程版</title>
+<style>
+/* ===== 第2关：CSS 美化 ===== */
+
+/* 1. CSS 变量：集中管理颜色，改一处全局生效 */
+:root {
+  --primary-color: #3EB489;      /* 薄荷绿主色 */
+  --primary-light: #EBF7F3;      /* 浅薄荷绿 */
+  --bg-color: #F7F9F8;            /* 页面背景 */
+  --expense-color: #FF4D4D;       /* 支出红 */
+  --income-color: #00FF87;        /* 收入绿 */
+  --text-main: #333333;           /* 主文字色 */
+  --text-sub: #888888;            /* 次要文字色 */
+}
+
+/* 2. 全局重置：去掉浏览器默认边距，设字体 */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+}
+
+/* 3. 容器：居中、限宽、底部留出导航栏空间 */
+.container {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: 90px; /* 给底部导航栏留位置 */
+}
+
+/* 4. 页面切换：默认隐藏，加了 active 才显示 */
+.page { display: none; }
+.page.active { display: block; }
+
+/* 5. 卡片样式：白底、圆角、轻阴影 */
+.card {
+  background-color: #FFFFFF;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin-bottom: 16px;
+}
+
+/* 6. 概览卡片：绿色背景、白字 */
+.overview-card {
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(62,180,137,0.2);
+  margin-bottom: 16px;
+}
+
+/* 7. 收支行：左右各占一半 */
+.balance-row { display: flex; margin-top: 12px; }
+.balance-item { flex: 1; }
+.balance-label { font-size: 12px; color: #E8F8F5; }
+.balance-value-income { font-size: 18px; font-weight: bold; color: var(--income-color); margin-top: 4px; }
+.balance-value-expense { font-size: 18px; font-weight: bold; color: var(--expense-color); margin-top: 4px; }
+
+/* 8. 标题文字 */
+.section-title { font-size: 15px; font-weight: bold; margin: 16px 0 10px; }
+.empty-text { color: var(--text-sub); text-align: center; padding: 24px 0; font-size: 14px; }
+
+/* 9. 底部导航栏：固定在屏幕底部 */
+.nav-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background-color: #FFFFFF;
+  display: flex;
+  height: 56px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+  z-index: 10;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  color: #888888;
+  font-weight: bold;
+  cursor: pointer;
+}
+.nav-item.active span { color: var(--primary-color); transform: scale(1.15); }
+.nav-item span { display: inline-block; transition: all 0.2s; }
+
+/* 10. 悬浮「+」按钮：圆形、绿色、固定在底部偏上 */
+.fab-btn {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px; height: 56px;
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 50%;
+  font-size: 26px;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(62,180,137,0.4);
+  z-index: 20;
+  cursor: pointer;
+}
+
+/* 11. 弹窗遮罩：全屏半透明黑底 */
+.modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: none;            /* 默认隐藏 */
+  justify-content: center;
+  align-items: flex-end;    /* 弹窗从底部弹出 */
+  z-index: 100;
+}
+.modal-mask.active { display: flex; }
+
+/* 12. 弹窗内容：白底圆角、从底部滑入动画 */
+.modal-content {
+  background-color: #FFFFFF;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 16px 16px 0 0;
+  padding: 20px;
+  box-sizing: border-box;
+  animation: slideUp 0.25s ease-out;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* 13. 表单元素：标签 + 输入框 */
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 13px; color: var(--text-sub); margin-bottom: 6px; display: block; }
+.form-control {
+  width: 100%; padding: 10px;
+  border: 1px solid #A8E6CF; border-radius: 8px;
+  box-sizing: border-box; font-size: 14px; outline: none;
+}
+.form-control:focus { border-color: var(--primary-color); }
+
+/* 14. 分类网格：4列，每个格子是一个可选按钮 */
+.category-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
+.category-card {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 0; border-radius: 8px; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.2s;
+}
+.category-card.selected { border-color: var(--primary-color); transform: scale(1.05); }
+.category-card-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background-color: #FFFFFF;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin-bottom: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.category-card-name { font-size: 12px; }
+
+/* 15. 主按钮：绿色全宽 */
+.btn-primary {
+  width: 100%; padding: 12px;
+  background-color: var(--primary-color); color: #FFFFFF;
+  border: none; border-radius: 8px;
+  font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px;
+}
+
+/* 16. 账单列表项样式（第5关会用） */
+.bill-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; }
+.bill-left { display: flex; align-items: center; gap: 12px; }
+.bill-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.bill-title { font-size: 14px; font-weight: bold; }
+.bill-date { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+.bill-amount { font-size: 15px; font-weight: bold; }
+.amount-expense { color: var(--text-main); }
+.amount-income { color: var(--primary-color); }
+
+/* 17. 统计页顶部栏：月份切换 + 预算按钮 */
+.stats-header-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.month-picker-bar { flex: 1; display: flex; align-items: center; justify-content: space-between; background-color: #FFFFFF; padding: 8px 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.month-btn { background: none; border: none; font-size: 18px; color: var(--primary-color); font-weight: bold; cursor: pointer; padding: 2px 8px; }
+.month-display { font-size: 15px; font-weight: bold; }
+.set-budget-btn { background-color: var(--primary-color); color: #FFFFFF; border: none; border-radius: 12px; padding: 10px 14px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+
+/* 18. 筛选标签 */
+.filter-tabs { display: flex; gap: 8px; margin: 12px 0; }
+.filter-tab { flex: 1; text-align: center; padding: 6px 0; font-size: 13px; background-color: #F0F2F1; border-radius: 6px; color: var(--text-sub); cursor: pointer; }
+.filter-tab.active { background-color: var(--primary-color); color: #FFFFFF; font-weight: bold; }
+
+/* 19. 展开/收起明细按钮 */
+.toggle-detail-btn { width: 100%; padding: 10px; background-color: var(--primary-light); color: var(--primary-color); border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
+
+/* 20. 滑动删除：账单项外层包裹，右侧露出红色删除按钮 */
+.bill-item-wrapper { position: relative; overflow: hidden; border-bottom: 1px solid #F0F0F0; }
+.bill-item-wrapper:last-child { border-bottom: none; }
+.bill-item-wrapper .bill-item { position: relative; z-index: 2; transition: transform 0.2s; background-color: #FFFFFF; }
+.bill-delete-btn { position: absolute; right: 0; top: 0; bottom: 0; width: 70px; background-color: var(--expense-color); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; z-index: 1; cursor: pointer; }
+
+/* 21. 饼图容器 + 图例样式（第6关） */
+#chart-container { max-width: 280px; margin: 10px auto; }
+#chart-legend { margin-top: 14px; }
+.legend-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; font-size: 13px; border-bottom: 1px solid #F0F0F0; }
+.legend-row:last-child { border-bottom: none; }
+.legend-left { display: flex; align-items: center; gap: 8px; }
+.legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.legend-amount { color: #333333; font-weight: bold; }
+.legend-pct { color: var(--text-sub); margin-left: 8px; }
+
+/* 22. 预算进度条 */
+.budget-progress-card { background-color: #FFFFFF; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.progress-bar-bg { height: 8px; background-color: var(--primary-light); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.progress-bar-fill { height: 100%; width: 0%; background-color: var(--primary-color); border-radius: 4px; transition: width 0.3s, background-color 0.3s; }
+.progress-bar-fill.overbudget { background-color: var(--expense-color); }
+
+/* 23. 超支警告文字 */
+.warning-text { color: var(--warning-color); font-size: 13px; margin-top: 8px; font-weight: bold; display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ===== 页面1：账单页 ===== -->
+  <div id="page-bills" class="page active">
+
+    <!-- 顶部概览卡片 -->
+    <div class="overview-card">
+      <div>本月总概览</div>
+      <div class="balance-row">
+        <div class="balance-item">
+          <div class="balance-label">收入</div>
+          <div class="balance-value-income" id="home-income">+￥0.00</div>
+        </div>
+        <div class="balance-item">
+          <div class="balance-label">支出</div>
+          <div class="balance-value-expense" id="home-expense">-￥0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 最近账单 -->
+    <div class="section-title">最近账单</div>
+    <div class="card" id="home-bill-list">
+      <div class="empty-text">暂无账单记录</div>
+    </div>
+
+  </div>
+
+  <!-- ===== 页面2：统计页 ===== -->
+  <div id="page-stats" class="page">
+
+    <!-- 月度切换栏 -->
+    <div class="stats-header-bar">
+      <div class="month-picker-bar">
+        <button class="month-btn" id="prev-month">&lt;</button>
+        <div class="month-display">
+          <span id="month-text">2026年08月</span>
+        </div>
+        <button class="month-btn" id="next-month">&gt;</button>
+      </div>
+      <button class="set-budget-btn" id="open-budget-btn">设置预算</button>
+    </div>
+
+    <!-- 第5关补充：预算进度条 -->
+    <div class="budget-progress-card">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-sub)">
+        <span id="budget-used-text">已用 ￥0.00 / 未设预算</span>
+        <span id="budget-percent-text">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div id="budget-progress-fill" class="progress-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- 月度结余卡片 -->
+    <div class="overview-card">
+      <div>月度结余</div>
+      <div id="stat-balance">￥0.00</div>
+      <div class="balance-row">
+        <div class="balance-item">
+          <div class="balance-label">总收入</div>
+          <div class="balance-value-income" id="stat-income">+￥0.00</div>
+        </div>
+        <div class="balance-item">
+          <div class="balance-label">总支出</div>
+          <div class="balance-value-expense" id="stat-expense">-￥0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 饼图区域 -->
+    <div class="card">
+      <div class="section-title">支出分类统计</div>
+      <div id="chart-container">
+        <canvas id="categoryChart"></canvas>
+      </div>
+      <!-- 第5关：展开/收起明细按钮 -->
+      <button class="toggle-detail-btn" id="toggle-detail-btn">展开明细 ▼</button>
+    </div>
+
+    <!-- 第5关：明细列表区域（默认隐藏） -->
+    <div class="card" id="detail-section" style="display:none">
+      <!-- 筛选标签：全部 / 仅支出 / 仅收入 -->
+      <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all">全部</div>
+        <div class="filter-tab" data-filter="expense">仅支出</div>
+        <div class="filter-tab" data-filter="income">仅收入</div>
+      </div>
+      <div id="detail-list"></div>
+    </div>
+
+  </div>
+
+  <!-- ===== 底部导航栏 ===== -->
+  <div class="nav-bar">
+    <div class="nav-item active" data-target="page-bills"><span>账单</span></div>
+    <div style="width:60px"></div>
+    <div class="nav-item" data-target="page-stats"><span>统计</span></div>
+  </div>
+
+  <!-- ===== 悬浮添加按钮 ===== -->
+  <button class="fab-btn" id="open-add-modal">+</button>
+
+  <!-- ===== 记账弹窗（第4关会实现功能） ===== -->
+  <div class="modal-mask" id="add-modal">
+    <div class="modal-content">
+      <div style="font-weight:bold;font-size:16px;margin-bottom:12px">记一笔</div>
+
+      <!-- 类型选择：支出 / 收入 -->
+      <div class="form-group">
+        <label class="form-label">类型</label>
+        <select id="add-type" class="form-control">
+          <option value="expense">支出</option>
+          <option value="income">收入</option>
+        </select>
+      </div>
+
+      <!-- 分类选择：用网格展示图标按钮 -->
+      <div class="form-group">
+        <label class="form-label">选择分类</label>
+        <div class="category-grid" id="category-grid"></div>
+      </div>
+
+      <!-- 金额输入 -->
+      <div class="form-group">
+        <label class="form-label">金额</label>
+        <input type="number" id="add-amount" class="form-control" placeholder="0.00" step="0.01">
+      </div>
+
+      <!-- 备注（可选） -->
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <input type="text" id="add-note" class="form-control" placeholder="填写备注（可选）">
+      </div>
+
+      <!-- 时间选择 -->
+      <div class="form-group">
+        <label class="form-label">时间</label>
+        <input type="datetime-local" id="add-date" class="form-control">
+      </div>
+
+      <!-- 保存按钮 -->
+      <div class="warning-text" id="overbudget-warning">⚠ 提醒：提交后当月支出将超出设置的预算！</div>
+      <button class="btn-primary" id="save-bill-btn">保存账单</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== 第6关：引入 Chart.js 库（从 CDN 加载） ===== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script>
+// ===== 第3关：数据存档（localStorage）=====
+
+// 分类配置：每个分类的图标、背景色、图表色
+var categoryConfigs = {
+  '餐饮': { icon: '🍔', bg: '#FFF0E6', chartColor: '#FFB088' },
+  '交通': { icon: '🚗', bg: '#E6F7FF', chartColor: '#85D2FF' },
+  '购物': { icon: '🛍️', bg: '#FFF0F5', chartColor: '#FFB3D9' },
+  '娱乐': { icon: '🎮', bg: '#F3E8FF', chartColor: '#D3ADFF' },
+  '水果': { icon: '🥭', bg: '#FFFBE6', chartColor: '#FFE57F' },
+  '工资': { icon: '💰', bg: '#E6F7F0', chartColor: '#72D6B0' },
+  '其他': { icon: '📦', bg: '#F0F2F1', chartColor: '#C4C9C7' }
+};
+
+// 工具函数：把日期对象转成 "2026-08" 格式字符串
+function getYearMonthStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+// === 核心三招之「取」：从 localStorage 读取所有账单 ===
+function getBills() {
+  var raw = localStorage.getItem('bills');  // 取出字符串
+  if (!raw) return [];                       // 没有数据就返回空数组
+  try {
+    return JSON.parse(raw);                  // 字符串 → 数组
+  } catch (e) {
+    return [];                               // 解析失败也返回空数组
+  }
+}
+
+// === 核心三招之「存」：把账单数组存进 localStorage ===
+function saveBills(bills) {
+  localStorage.setItem('bills', JSON.stringify(bills));  // 数组 → 字符串 → 存储
+}
+
+// === 核心三招之「加」：新增一条账单并保存 ===
+function addBill(bill) {
+  var bills = getBills();     // 先取出现有数据
+  bills.push(bill);           // 往数组末尾加一条
+  saveBills(bills);           // 存回去
+}
+
+// === 渲染首页概览（收入/支出汇总 + 最近3条账单）===
+function renderHomeOverview() {
+  var ym = getYearMonthStr(new Date());  // 本月，如 "2026-08"
+  var bills = getBills();
+  // 筛出本月的账单
+  var monthBills = bills.filter(function(b) {
+    return b && b.date && typeof b.date === 'string' && b.date.startsWith(ym);
+  });
+
+  // 分别累加收入和支出
+  var income = 0, expense = 0;
+  monthBills.forEach(function(b) {
+    var amount = parseFloat(b.amount) || 0;
+    if (b.type === 'income') income += amount;
+    else expense += amount;
+  });
+
+  // 更新页面上的数字
+  document.getElementById('home-income').innerText = '+￥' + income.toFixed(2);
+  document.getElementById('home-expense').innerText = '-￥' + expense.toFixed(2);
+
+  // 显示最近3条账单（按时间倒序）
+  var listEl = document.getElementById('home-bill-list');
+  var recent = bills.slice().sort(function(a, b) {
+    return new Date(b.date) - new Date(a.date);
+  }).slice(0, 3);
+
+  if (!recent.length) {
+    listEl.innerHTML = '<div class="empty-text">暂无账单记录</div>';
+  } else {
+    listEl.innerHTML = recent.map(function(b) {
+      var c = categoryConfigs[b.category] || { icon: '📝', bg: '#F0F2F1' };
+      return '<div class="bill-item">' +
+        '<div class="bill-left">' +
+          '<div class="bill-icon" style="background:' + c.bg + '">' + c.icon + '</div>' +
+          '<div>' +
+            '<div class="bill-title">' + b.category + '</div>' +
+            '<div class="bill-date">' + b.date + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="bill-amount ' + (b.type === 'income' ? 'amount-income' : 'amount-expense') + '">' +
+          (b.type === 'income' ? '+' : '-') + '￥' + parseFloat(b.amount).toFixed(2) +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+// ===== 以下是第1关的导航和弹窗逻辑 =====
+
+// 当前选中的分类（默认"餐饮"）
+var selectedCategory = '餐饮';
+
+// 生成分类选择网格：遍历 categoryConfigs，为每个分类生成一个按钮
+function buildCategoryGrid() {
+  var grid = document.getElementById('category-grid');
+  grid.innerHTML = Object.keys(categoryConfigs).map(function(cat) {
+    var c = categoryConfigs[cat];
+    return '<div class="category-card ' + (cat === selectedCategory ? 'selected' : '') + '" ' +
+      'style="background:' + c.bg + '" onclick="selectCategory(\'' + cat + '\')">' +
+      '<div class="category-card-icon">' + c.icon + '</div>' +
+      '<div class="category-card-name">' + cat + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// 点击分类按钮时切换选中状态
+window.selectCategory = function(cat) {
+  selectedCategory = cat;
+  buildCategoryGrid();  // 重新渲染，高亮新选中的
+};
+
+document.querySelectorAll('.nav-item').forEach(function(item) {
+  item.addEventListener('click', function() {
+    var target = this.getAttribute('data-target');
+    if (!target) return;
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    this.classList.add('active');
+    document.querySelectorAll('.page').forEach(function(p) {
+      if (p.id === target) { p.classList.add('active'); }
+      else { p.classList.remove('active'); }
+    });
+  });
+});
+
+var modal = document.getElementById('add-modal');
+document.getElementById('open-add-modal').addEventListener('click', function() {
+  // 打开弹窗时：自动填入当前时间
+  var now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); // 处理时区
+  document.getElementById('add-date').value = now.toISOString().slice(0, 16);
+  // 生成分类网格
+  buildCategoryGrid();
+  // 清空之前的输入
+  document.getElementById('add-amount').value = '';
+  document.getElementById('add-note').value = '';
+  modal.classList.add('active');
+  checkOverbudgetWarning();  // 打开时检查一次
+});
+modal.addEventListener('click', function(e) {
+  if (e.target === modal) modal.classList.remove('active');
+});
+
+// ===== 第4关核心：保存账单 =====
+document.getElementById('save-bill-btn').addEventListener('click', function() {
+  // 1. 收集表单数据
+  var type = document.getElementById('add-type').value;
+  var amount = parseFloat(document.getElementById('add-amount').value);
+  var note = document.getElementById('add-note').value.trim();
+  var dateVal = document.getElementById('add-date').value;
+
+  // 2. 校验：金额和时间为必填
+  if (!amount || amount <= 0) { alert('请输入有效金额'); return; }
+  if (!dateVal) { alert('请选择时间'); return; }
+
+  // 3. 组装一条账单数据
+  var formattedDate = dateVal.replace('T', ' ');  // "2026-08-01T14:10" → "2026-08-01 14:10"
+  var newBill = {
+    id: Date.now(),              // 用时间戳做唯一ID
+    type: type,
+    category: selectedCategory,
+    amount: amount,
+    note: note,
+    date: formattedDate
+  };
+
+  // 4. 存进 localStorage（调用第3关写的函数）
+  addBill(newBill);
+
+  // 5. 关闭弹窗、刷新首页
+  modal.classList.remove('active');
+  renderHomeOverview();
+});
+
+// ===== 预算超支警告检查 =====
+function checkOverbudgetWarning() {
+  var type = document.getElementById('add-type').value;
+  var amount = parseFloat(document.getElementById('add-amount').value) || 0;
+  var warning = document.getElementById('overbudget-warning');
+
+  // 非支出或金额为 0 时不警告
+  if (type !== 'expense' || amount <= 0) {
+    warning.style.display = 'none';
+    return;
+  }
+
+  var budget = parseFloat(localStorage.getItem('app_budget')) || 0;
+  if (budget <= 0) {
+    warning.style.display = 'none';
+    return;
+  }
+
+  // 计算本月已支出 + 当前输入的金额，看是否超预算
+  var ym = getYearMonthStr(new Date());
+  var bills = getBills();
+  var currentExpense = bills.filter(function(b) {
+    return b.type === 'expense' && b.date.startsWith(ym);
+  }).reduce(function(sum, b) { return sum + (parseFloat(b.amount) || 0); }, 0);
+
+  warning.style.display = (currentExpense + amount) > budget ? 'block' : 'none';
+}
+
+// 金额输入变化时实时检查
+document.getElementById('add-amount').addEventListener('input', checkOverbudgetWarning);
+// 类型切换时检查
+document.getElementById('add-type').addEventListener('change', checkOverbudgetWarning);
+
+// ===== 第5关：统计页月度汇总 + 明细列表 + 滑动删除 =====
+
+// 当前查看的月份（用 Date 对象，方便增减月份）
+var currentDate = new Date();
+// 当前筛选类型：all / expense / income
+var currentFilterType = 'all';
+
+// 渲染统计页：月度汇总数字 + 明细列表
+function renderStats() {
+  var ym = getYearMonthStr(currentDate);  // 如 "2026-08"
+
+  // 更新月份显示文字
+  document.getElementById('month-text').innerText =
+    currentDate.getFullYear() + '年' + String(currentDate.getMonth() + 1).padStart(2, '0') + '月';
+
+  // 取出本月的账单
+  var bills = getBills();
+  var monthBills = bills.filter(function(b) {
+    return b && b.date && typeof b.date === 'string' && b.date.startsWith(ym);
+  });
+
+  // 分别累加收入和支出
+  var totalIncome = 0, totalExpense = 0;
+  monthBills.forEach(function(b) {
+    var amount = parseFloat(b.amount) || 0;
+    if (b.type === 'income') totalIncome += amount;
+    else totalExpense += amount;
+  });
+
+  // 更新页面数字
+  document.getElementById('stat-income').innerText = '+￥' + totalIncome.toFixed(2);
+  document.getElementById('stat-expense').innerText = '-￥' + totalExpense.toFixed(2);
+  document.getElementById('stat-balance').innerText = '￥' + (totalIncome - totalExpense).toFixed(2);
+
+  // 更新预算进度条
+  updateBudgetUI(totalExpense);
+
+  // 渲染饼图 + 明细列表
+  renderChart(monthBills, totalExpense);
+  renderDetailList(monthBills);
+}
+
+// ===== 预算功能：更新进度条 =====
+function updateBudgetUI(expense) {
+  var fill = document.getElementById('budget-progress-fill');
+  var usedText = document.getElementById('budget-used-text');
+  var pctText = document.getElementById('budget-percent-text');
+  var budget = parseFloat(localStorage.getItem('app_budget')) || 0;
+
+  if (!budget || budget <= 0) {
+    // 没设预算
+    usedText.innerText = '已用 ￥' + expense.toFixed(2) + ' / 未设预算';
+    fill.style.width = '0%';
+    pctText.innerText = '0%';
+    fill.classList.remove('overbudget');
+    return;
+  }
+
+  // 已设预算：计算百分比
+  usedText.innerText = '已用 ￥' + expense.toFixed(2) + ' / 预算 ￥' + budget.toFixed(2);
+  var pct = expense / budget * 100;
+  fill.style.width = Math.min(pct, 100) + '%';  // 最多 100%，不溢出
+  pctText.innerText = pct.toFixed(1) + '%';
+
+  // 超预算时进度条变红
+  if (pct > 100) fill.classList.add('overbudget');
+  else fill.classList.remove('overbudget');
+}
+
+// ===== 第6关：Chart.js 环形图 =====
+
+// Chart.js 实例引用（每次重画前要先销毁旧的）
+var myChart = null;
+
+// 渲染支出分类饼图
+function renderChart(monthBills, totalExpense) {
+  var ctx = document.getElementById('categoryChart').getContext('2d');
+
+  // 销毁旧图表（否则会叠加报错）
+  if (myChart) myChart.destroy();
+
+  // 移除旧图例
+  var oldLegend = document.getElementById('chart-legend');
+  if (oldLegend) oldLegend.remove();
+
+  // 没有支出数据时不画图
+  if (totalExpense === 0) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    return;
+  }
+
+  // === 第1步：统计每个分类的支出金额 ===
+  var categoryTotals = {};
+  monthBills.forEach(function(b) {
+    if (b.type === 'expense') {
+      var amount = parseFloat(b.amount) || 0;
+      categoryTotals[b.category] = (categoryTotals[b.category] || 0) + amount;
+    }
+  });
+
+  // === 第2步：拆成三个数组（Chart.js 需要的格式）===
+  // 占比 < 5% 的分类合并到"其他"，避免图表太碎
+  var labels = [], data = [], colors = [], otherTotal = 0;
+  Object.keys(categoryTotals).forEach(function(cat) {
+    var amount = categoryTotals[cat];
+    if (amount / totalExpense < 0.05) {
+      otherTotal += amount;
+    } else {
+      labels.push(cat);
+      data.push(amount);
+      colors.push(categoryConfigs[cat] ? categoryConfigs[cat].chartColor : '#C4C9C7');
+    }
+  });
+  if (otherTotal > 0) {
+    labels.push('其他');
+    data.push(otherTotal);
+    colors.push('#C4C9C7');
+  }
+
+  // === 第3步：用 Chart.js 创建环形图 ===
+  myChart = new Chart(ctx, {
+    type: 'doughnut',          // 环形图
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: colors,
+        borderColor: '#FFFFFF',  // 扇区间白色分割线
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,         // 自适应容器大小
+      cutout: '55%',            // 中间镂空 55%，形成环形
+      plugins: {
+        legend: { display: false },  // 不用 Chart.js 自带图例，我们自己画
+        tooltip: {
+          callbacks: {
+            // hover 时显示「分类名: ￥金额 (占比%)」
+            label: function(context) {
+              var val = context.raw;
+              var pct = ((val / totalExpense) * 100).toFixed(1);
+              return ' ' + context.label + ': ￥' + val.toFixed(2) + ' (' + pct + '%)';
+            }
+          }
+        },
+        // === 中心文字插件：在环形图镂空区域绘制「总支出 + 金额」 ===
+        centerText: {
+          id: 'centerText',
+          afterDraw: function(chart) {
+            var ctx = chart.ctx;
+            var cx = chart.width / 2;   // 中心 X 坐标
+            var cy = chart.height / 2;  // 中心 Y 坐标
+
+            // 第一行：「总支出」灰色小字
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#888888';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('总支出', cx, cy - 12);
+
+            // 第二行：「￥金额」黑色粗体大字
+            ctx.fillStyle = '#333333';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText('￥' + totalExpense.toFixed(2), cx, cy + 10);
+            ctx.restore();
+          }
+        }
+      }
+    },
+    // 注册中心文字插件（写在外层 plugins 里才会执行）
+    plugins: [{
+      id: 'centerText',
+      afterDraw: function(chart) {
+        var ctx = chart.ctx;
+        var cx = chart.width / 2;
+        var cy = chart.height / 2;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#888888';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('总支出', cx, cy - 12);
+        ctx.fillStyle = '#333333';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('￥' + totalExpense.toFixed(2), cx, cy + 10);
+        ctx.restore();
+      }
+    }]
+  });
+
+  // === 第4步：生成 HTML 图例（显示在饼图下方）===
+  var container = document.getElementById('chart-container');
+  var legend = document.createElement('div');
+  legend.id = 'chart-legend';
+  legend.innerHTML = labels.map(function(label, i) {
+    var pct = ((data[i] / totalExpense) * 100).toFixed(1);
+    return '<div class="legend-row">' +
+      '<div class="legend-left">' +
+        '<span class="legend-dot" style="background:' + colors[i] + ';"></span>' +
+        '<span>' + label + '</span>' +
+      '</div>' +
+      '<div>' +
+        '<span class="legend-amount">￥' + data[i].toFixed(2) + '</span>' +
+        '<span class="legend-pct">' + pct + '%</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  container.appendChild(legend);
+}
+
+// 渲染明细列表：根据筛选条件显示账单
+function renderDetailList(monthBills) {
+  var container = document.getElementById('detail-list');
+  var filtered = monthBills;
+
+  // 按类型筛选
+  if (currentFilterType === 'expense') filtered = filtered.filter(function(b) { return b.type === 'expense'; });
+  if (currentFilterType === 'income') filtered = filtered.filter(function(b) { return b.type === 'income'; });
+
+  // 按时间倒序排列
+  filtered.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty-text">暂无账单记录</div>';
+    return;
+  }
+
+  // 生成列表 HTML：每条账单外面包一层 wrapper，右侧藏一个删除按钮
+  container.innerHTML = filtered.map(function(b) {
+    var cfg = categoryConfigs[b.category] || { icon: '📝', bg: '#F0F2F1' };
+    return '<div class="bill-item-wrapper">' +
+      '<div class="bill-delete-btn" onclick="deleteBill(' + b.id + ')">删除</div>' +
+      '<div class="bill-item">' +
+        '<div class="bill-left">' +
+          '<div class="bill-icon" style="background:' + cfg.bg + '">' + cfg.icon + '</div>' +
+          '<div>' +
+            '<div class="bill-title">' + b.category + (b.note ? ' <span style="font-size:11px;color:var(--text-sub)">(' + b.note + ')</span>' : '') + '</div>' +
+            '<div class="bill-date">' + b.date + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="bill-amount ' + (b.type === 'income' ? 'amount-income' : 'amount-expense') + '">' +
+          (b.type === 'income' ? '+' : '-') + '￥' + parseFloat(b.amount).toFixed(2) +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // 绑定滑动事件
+  bindSwipeEvents();
+}
+
+// 滑动删除：手指左滑露出删除按钮，右滑收回
+function bindSwipeEvents() {
+  document.querySelectorAll('.bill-item-wrapper').forEach(function(wrapper) {
+    var item = wrapper.querySelector('.bill-item');
+    var startX = 0;
+
+    item.addEventListener('touchstart', function(e) {
+      startX = e.touches[0].clientX;
+    });
+
+    item.addEventListener('touchmove', function(e) {
+      var delta = e.touches[0].clientX - startX;
+      if (delta < -20) item.style.transform = 'translateX(-70px)';  // 左滑露出删除
+      if (delta > 20) item.style.transform = 'translateX(0)';       // 右滑收回
+    });
+  });
+}
+
+// 删除账单：按 id 过滤掉，重新保存并刷新
+window.deleteBill = function(id) {
+  if (!confirm('确定要删除该条账单吗？')) return;
+  var bills = getBills();
+  bills = bills.filter(function(b) { return b.id !== id; });
+  saveBills(bills);
+  renderStats();        // 刷新统计页
+  renderHomeOverview(); // 刷新首页
+};
+
+// === 月份切换事件 ===
+document.getElementById('prev-month').addEventListener('click', function() {
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  renderStats();
+});
+document.getElementById('next-month').addEventListener('click', function() {
+  currentDate.setMonth(currentDate.getMonth() + 1);
+  renderStats();
+});
+
+// === 设置预算按钮 ===
+document.getElementById('open-budget-btn').addEventListener('click', function() {
+  var current = localStorage.getItem('app_budget') || '3000';
+  var input = prompt('请输入当月预算金额(元):', current);
+  if (input === null) return;  // 用户点了取消
+  var val = parseFloat(input.trim());
+  if (isNaN(val) || val < 0) {
+    alert('请输入有效的大于等于0的数字');
+    return;
+  }
+  localStorage.setItem('app_budget', val);
+  renderStats();  // 刷新进度条
+});
+
+// === 展开/收起明细 ===
+var toggleBtn = document.getElementById('toggle-detail-btn');
+var detailSection = document.getElementById('detail-section');
+toggleBtn.addEventListener('click', function() {
+  if (detailSection.style.display === 'none') {
+    detailSection.style.display = 'block';
+    toggleBtn.innerText = '收起明细 ▲';
+  } else {
+    detailSection.style.display = 'none';
+    toggleBtn.innerText = '展开明细 ▼';
+  }
+});
+
+// === 筛选标签切换 ===
+document.querySelectorAll('.filter-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.filter-tab').forEach(function(t) { t.classList.remove('active'); });
+    this.classList.add('active');
+    currentFilterType = this.getAttribute('data-filter');
+    renderStats();  // 重新渲染明细
+  });
+});
+
+// === 导航切到统计页时自动刷新 ===
+// 覆盖第1关的导航逻辑，增加切换到统计页时调用 renderStats
+document.querySelectorAll('.nav-item').forEach(function(item) {
+  // 先移除旧的事件（第1关绑定的），用克隆节点替代
+  var clone = item.cloneNode(true);
+  item.parentNode.replaceChild(clone, item);
+});
+document.querySelectorAll('.nav-item').forEach(function(item) {
+  item.addEventListener('click', function() {
+    var target = this.getAttribute('data-target');
+    if (!target) return;
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    this.classList.add('active');
+    document.querySelectorAll('.page').forEach(function(p) {
+      if (p.id === target) {
+        p.classList.add('active');
+        if (target === 'page-stats') renderStats();    // 切到统计页时刷新
+        if (target === 'page-bills') renderHomeOverview(); // 切到账单页时刷新
+      } else {
+        p.classList.remove('active');
+      }
+    });
+  });
+});
+
+// 页面加载完成后渲染首页
+document.addEventListener('DOMContentLoaded', function() {
+  renderHomeOverview();
+});
+</script>
+</body>
+</html>
