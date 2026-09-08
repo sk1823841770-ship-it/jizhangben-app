@@ -1,0 +1,4636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>薄荷绿记账 - 教程版</title>
+<style>
+/* ===== 第9关：App 产品化 UI 升级 ===== */
+:root {
+--primary: #3EB489;
+--primary-dark: #2F9873;
+--primary-light: #EBF7F3;
+--background: #F6F8F7;
+--surface: #FFFFFF;
+--text-primary: #252A28;
+--text-secondary: #7C8581;
+--divider: #E8ECEA;
+--expense: #E65353;
+--income: #219B72;
+--warning: #D97706;
+--space-1: 4px;
+--space-2: 8px;
+--space-3: 12px;
+--space-4: 16px;
+--space-5: 20px;
+--space-6: 24px;
+--space-8: 32px;
+--radius-control: 12px;
+--radius-section: 16px;
+--radius-sheet: 24px;
+--nav-height: 68px;
+/* 兼容现有动态模板中的变量名 */
+--primary-color: var(--primary);
+--bg-color: var(--background);
+--expense-color: var(--expense);
+--income-color: var(--income);
+--text-main: var(--text-primary);
+--text-sub: var(--text-secondary);
+--warning-color: var(--warning);
+}
+
+* {
+box-sizing: border-box;
+-webkit-tap-highlight-color: transparent;
+}
+
+html {
+min-height: 100%;
+background: var(--background);
+}
+
+body {
+min-width: 0;
+min-height: 100vh;
+margin: 0;
+overflow-x: hidden;
+background: var(--background);
+color: var(--text-primary);
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+-webkit-font-smoothing: antialiased;
+-webkit-user-select: none;
+user-select: none;
+-webkit-touch-callout: none;
+}
+
+button,
+input,
+select,
+textarea {
+font: inherit;
+}
+
+button {
+-webkit-appearance: none;
+appearance: none;
+}
+
+input,
+textarea {
+-webkit-user-select: text;
+user-select: text;
+-webkit-touch-callout: default;
+}
+
+select {
+-webkit-user-select: auto;
+user-select: auto;
+}
+
+svg {
+display: block;
+}
+
+.container {
+width: 100%;
+min-height: 100vh;
+padding: calc(env(safe-area-inset-top) + var(--space-3)) var(--space-4)
+calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-8));
+}
+
+.page {
+display: none;
+}
+
+.page.active {
+display: block;
+animation: pageEnter 180ms ease-out;
+}
+
+@keyframes pageEnter {
+from { opacity: 0; transform: translateY(4px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.app-header {
+display: flex;
+align-items: center;
+min-height: 44px;
+margin-bottom: var(--space-3);
+}
+
+.app-header-title {
+margin: 0;
+font-size: 22px;
+font-weight: 700;
+line-height: 1.35;
+letter-spacing: -0.3px;
+}
+
+.card {
+margin-bottom: var(--space-4);
+padding: var(--space-4);
+border: 1px solid rgba(232, 236, 234, 0.75);
+border-radius: var(--radius-section);
+background: var(--surface);
+box-shadow: 0 2px 10px rgba(26, 43, 36, 0.025);
+}
+
+.overview-card {
+position: relative;
+overflow: hidden;
+margin-bottom: var(--space-5);
+padding: var(--space-5);
+border-radius: 18px;
+background: var(--primary);
+color: #FFFFFF;
+box-shadow: 0 8px 20px rgba(62, 180, 137, 0.16);
+}
+
+.overview-card::after {
+content: "";
+position: absolute;
+right: -28px;
+top: -36px;
+width: 112px;
+height: 112px;
+border: 20px solid rgba(255, 255, 255, 0.06);
+border-radius: 50%;
+pointer-events: none;
+}
+
+.overview-title {
+position: relative;
+z-index: 1;
+font-size: 14px;
+font-weight: 600;
+color: rgba(255, 255, 255, 0.88);
+}
+
+.balance-row {
+position: relative;
+z-index: 1;
+display: flex;
+gap: var(--space-4);
+margin-top: var(--space-4);
+}
+
+.balance-item {
+min-width: 0;
+flex: 1;
+}
+
+.balance-label {
+font-size: 12px;
+color: rgba(255, 255, 255, 0.76);
+}
+
+.balance-value-income,
+.balance-value-expense {
+margin-top: var(--space-1);
+font-size: clamp(24px, 7vw, 28px);
+font-weight: 700;
+line-height: 1.2;
+letter-spacing: -0.5px;
+color: #FFFFFF;
+white-space: nowrap;
+}
+
+.stats-overview .balance-value-income,
+.stats-overview .balance-value-expense {
+font-size: 17px;
+}
+
+.stat-balance-value {
+position: relative;
+z-index: 1;
+margin-top: var(--space-2);
+font-size: clamp(28px, 8vw, 32px);
+font-weight: 700;
+line-height: 1.2;
+letter-spacing: -0.7px;
+}
+
+.section-title {
+margin: var(--space-5) 0 var(--space-3);
+font-size: 16px;
+font-weight: 600;
+line-height: 1.4;
+}
+
+.empty-text {
+padding: var(--space-6) 0;
+color: var(--text-secondary);
+font-size: 14px;
+text-align: center;
+}
+
+.bill-filter-card {
+padding: var(--space-4);
+border: none;
+box-shadow: none;
+}
+
+.bill-search-box {
+position: relative;
+margin-bottom: var(--space-3);
+}
+
+.bill-search-icon {
+position: absolute;
+left: var(--space-3);
+top: 50%;
+width: 20px;
+height: 20px;
+color: var(--text-secondary);
+transform: translateY(-50%);
+pointer-events: none;
+}
+
+.bill-search-input {
+padding-left: 42px !important;
+}
+
+.form-group {
+margin-bottom: var(--space-4);
+}
+
+.form-label {
+display: block;
+margin-bottom: var(--space-2);
+color: var(--text-secondary);
+font-size: 13px;
+font-weight: 500;
+}
+
+.form-control {
+width: 100%;
+height: 46px;
+padding: 0 var(--space-3);
+border: 1px solid transparent;
+border-radius: var(--radius-control);
+outline: none;
+background-color: #F0F3F2;
+color: var(--text-primary);
+font-size: 15px;
+transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.form-control:focus {
+border-color: rgba(62, 180, 137, 0.48);
+background-color: var(--surface);
+box-shadow: 0 0 0 3px rgba(62, 180, 137, 0.08);
+}
+
+.form-control::placeholder {
+color: #A2AAA6;
+}
+
+#add-modal #add-note {
+display: block;
+height: 68px;
+min-height: 68px;
+max-height: 68px;
+padding: 11px var(--space-3);
+font-family: inherit;
+line-height: 1.45;
+resize: none;
+overflow-x: hidden;
+overflow-y: auto;
+overscroll-behavior: contain;
+}
+
+select.form-control {
+-webkit-appearance: none;
+appearance: none;
+padding-right: 38px;
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237C8581' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+background-repeat: no-repeat;
+background-position: right 12px center;
+background-size: 18px;
+}
+
+/* ===== 统一选项入口：保留原 select 作为业务值源，只替换视觉入口 ===== */
+.option-sheet-native-select,
+.option-sheet-source {
+position: absolute !important;
+width: 1px !important;
+height: 1px !important;
+overflow: hidden !important;
+clip: rect(0 0 0 0) !important;
+clip-path: inset(50%) !important;
+white-space: nowrap !important;
+opacity: 0 !important;
+pointer-events: none !important;
+}
+
+.option-sheet-trigger {
+width: 100%;
+height: 46px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: var(--space-3);
+padding: 0 var(--space-3);
+border: 1px solid transparent;
+border-radius: var(--radius-control);
+outline: none;
+background: var(--background);
+color: var(--text-primary);
+font-size: 15px;
+text-align: left;
+cursor: pointer;
+transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 120ms ease;
+}
+
+.option-sheet-trigger-label {
+min-width: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+.option-sheet-trigger-icon {
+width: 18px;
+height: 18px;
+flex: 0 0 18px;
+color: var(--text-secondary);
+transition: transform 180ms ease, color 150ms ease;
+}
+
+.option-sheet-trigger[aria-expanded="true"] {
+border-color: rgba(62, 180, 137, 0.48);
+background: var(--surface);
+box-shadow: 0 0 0 3px rgba(62, 180, 137, 0.08);
+}
+
+.option-sheet-trigger[aria-expanded="true"] .option-sheet-trigger-icon {
+color: var(--primary);
+transform: rotate(180deg);
+}
+
+.filter-tabs {
+display: flex;
+gap: var(--space-1);
+margin: var(--space-3) 0;
+padding: var(--space-1);
+border-radius: var(--radius-control);
+background: #EEF1F0;
+}
+
+.filter-tab {
+min-height: 36px;
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 9px;
+color: var(--text-secondary);
+font-size: 13px;
+font-weight: 500;
+cursor: pointer;
+transition: color 140ms ease, background-color 140ms ease, transform 120ms ease;
+}
+
+.filter-tab.active {
+background: var(--surface);
+color: var(--primary-dark);
+font-weight: 600;
+box-shadow: 0 1px 4px rgba(26, 43, 36, 0.07);
+}
+
+.home-type-tabs {
+min-width: 0;
+margin: 0;
+}
+
+.home-filter-actions {
+display: grid;
+grid-template-columns: minmax(0, 1fr) auto;
+align-items: center;
+gap: var(--space-2);
+}
+
+.home-type-tabs .filter-tab {
+padding: 0 var(--space-2);
+border: none;
+background: transparent;
+font-family: inherit;
+}
+
+.home-type-tabs .filter-tab.active {
+background: var(--surface);
+}
+
+.home-filter-button {
+height: 44px;
+min-width: 88px;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+padding: 0 var(--space-3);
+border: 1px solid var(--divider);
+border-radius: var(--radius-control);
+background: var(--surface);
+color: var(--text-primary);
+font-family: inherit;
+font-size: 13px;
+font-weight: 600;
+white-space: nowrap;
+cursor: pointer;
+transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 120ms ease;
+}
+
+.home-filter-button.is-active {
+border-color: rgba(62, 180, 137, 0.34);
+background: var(--primary-light);
+color: var(--primary-dark);
+}
+
+.home-filter-button:active {
+transform: scale(0.97);
+}
+
+.filter-select-row {
+display: grid;
+grid-template-columns: repeat(2, minmax(0, 1fr));
+gap: var(--space-3);
+}
+
+.filter-select-item {
+min-width: 0;
+}
+
+.filter-select-item .form-label {
+margin-bottom: var(--space-1);
+}
+
+.custom-date-range {
+display: none;
+grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+align-items: end;
+gap: var(--space-2);
+margin-top: var(--space-3);
+}
+
+.custom-date-range.active {
+display: grid;
+}
+
+.custom-date-separator {
+padding-bottom: 14px;
+color: var(--text-secondary);
+font-size: 13px;
+}
+
+.filter-date-error {
+display: none;
+margin-top: var(--space-2);
+color: var(--expense);
+font-size: 12px;
+}
+
+body.home-filter-sheet-open {
+overflow: hidden;
+}
+
+.home-filter-sheet-mask {
+position: fixed;
+inset: 0;
+z-index: 240;
+display: flex;
+align-items: flex-end;
+justify-content: center;
+visibility: hidden;
+background: rgba(20, 27, 24, 0.42);
+opacity: 0;
+pointer-events: none;
+transition: opacity 220ms ease, visibility 0s linear 220ms;
+}
+
+.home-filter-sheet-mask.active {
+visibility: visible;
+opacity: 1;
+pointer-events: auto;
+transition-delay: 0s;
+}
+
+.home-filter-sheet-panel {
+width: 100%;
+max-width: 600px;
+max-height: 76vh;
+max-height: 76dvh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+background: var(--surface);
+box-shadow: 0 -4px 16px rgba(20, 27, 24, 0.08);
+transform: translateY(100%);
+transition: transform 220ms cubic-bezier(0.22, 0.8, 0.32, 1);
+}
+
+.home-filter-sheet-mask.active .home-filter-sheet-panel {
+transform: translateY(0);
+}
+
+.home-filter-sheet-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: var(--space-3);
+padding: var(--space-4) var(--space-5) var(--space-3);
+border-bottom: 1px solid var(--divider);
+}
+
+.home-filter-sheet-title {
+margin: 0;
+font-size: 18px;
+font-weight: 600;
+line-height: 1.4;
+}
+
+.home-filter-clear {
+min-width: 44px;
+height: 44px;
+padding: 0;
+border: none;
+background: transparent;
+color: var(--primary-dark);
+font-family: inherit;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+}
+
+.home-filter-clear:disabled {
+color: var(--text-secondary);
+opacity: 0.48;
+cursor: default;
+}
+
+.home-filter-sheet-body {
+min-height: 0;
+overflow-y: auto;
+overscroll-behavior: contain;
+-webkit-overflow-scrolling: touch;
+padding: var(--space-4) var(--space-5);
+}
+
+.home-filter-sheet-footer {
+padding: var(--space-2) var(--space-5) calc(var(--space-4) + env(safe-area-inset-bottom));
+border-top: 1px solid var(--divider);
+background: var(--surface);
+}
+
+.home-filter-sheet-footer .btn-primary {
+margin-top: 0;
+}
+
+#home-bill-list {
+margin: 0;
+padding: 0;
+border: none;
+border-radius: 0;
+background: transparent;
+box-shadow: none;
+}
+
+.bill-item {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: var(--space-3);
+min-width: 0;
+padding: var(--space-4) 0;
+border-bottom: 1px solid var(--divider);
+touch-action: pan-y;
+-webkit-user-select: none;
+user-select: none;
+-webkit-touch-callout: none;
+transition: background-color 120ms ease;
+}
+
+.bill-item:last-child {
+border-bottom: none;
+}
+
+.bill-item.long-press-active {
+border-radius: var(--radius-control);
+background: var(--primary-light);
+}
+
+.bill-left {
+min-width: 0;
+display: flex;
+align-items: center;
+gap: var(--space-3);
+}
+
+.bill-left > div:last-child {
+min-width: 0;
+}
+
+.bill-icon {
+width: 42px;
+height: 42px;
+flex: 0 0 42px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: var(--radius-control);
+color: var(--text-primary);
+}
+
+.bill-icon svg,
+.category-card-icon svg {
+width: 21px;
+height: 21px;
+}
+
+.bill-title {
+overflow: hidden;
+color: var(--text-primary);
+font-size: 14px;
+font-weight: 600;
+line-height: 1.4;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+.bill-date {
+margin-top: var(--space-1);
+color: var(--text-secondary);
+font-size: 12px;
+line-height: 1.35;
+}
+
+.bill-amount {
+flex: 0 0 auto;
+font-size: 15px;
+font-weight: 600;
+white-space: nowrap;
+}
+
+.amount-expense { color: var(--text-primary); }
+.amount-income { color: var(--income); }
+
+/* ===== 第一阶段：首页视觉回调 ===== */
+/* 只收紧首页，不影响统计页共用的概览卡片和账单列表样式 */
+#page-bills .overview-card {
+margin-bottom: var(--space-3);
+padding: var(--space-5);
+border-radius: var(--radius-control);
+box-shadow: 0 3px 10px rgba(47, 152, 115, 0.11);
+}
+
+#page-bills .overview-card::after {
+display: none;
+}
+
+#page-bills .overview-title {
+font-size: 14px;
+font-weight: 600;
+color: #FFFFFF;
+}
+
+#page-bills .balance-row {
+gap: var(--space-4);
+margin-top: var(--space-3);
+}
+
+#page-bills .balance-label {
+font-size: 12px;
+color: rgba(255, 255, 255, 0.76);
+}
+
+#page-bills .balance-value-income,
+#page-bills .balance-value-expense {
+margin-top: var(--space-1);
+font-size: 20px;
+font-weight: 700;
+line-height: 1.2;
+letter-spacing: -0.2px;
+}
+
+#page-bills .bill-filter-card {
+margin-bottom: 0;
+padding: 14px;
+border-radius: var(--radius-control);
+}
+
+#page-bills .bill-filter-card .form-control {
+height: 44px;
+}
+
+#home-list-title {
+margin: 14px 0 0;
+}
+
+#home-bill-list .bill-item {
+position: relative;
+min-height: 60px;
+padding: 9px 0;
+border-bottom: none;
+}
+
+#home-bill-list .bill-left {
+flex: 1 1 auto;
+min-width: 0;
+}
+
+#home-bill-list .bill-copy {
+min-width: 0;
+flex: 1 1 auto;
+}
+
+#home-bill-list .bill-meta {
+display: flex;
+align-items: center;
+gap: var(--space-1);
+min-width: 0;
+margin-top: var(--space-1);
+color: var(--text-secondary);
+font-size: 12px;
+line-height: 1.35;
+}
+
+#home-bill-list .bill-note {
+min-width: 0;
+flex: 1 1 auto;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+#home-bill-list .bill-meta-separator,
+#home-bill-list .bill-date {
+flex: 0 0 auto;
+}
+
+#home-bill-list .bill-date {
+margin-top: 0;
+white-space: nowrap;
+}
+
+#home-bill-list .bill-trailing {
+display: flex;
+align-items: center;
+gap: var(--space-1);
+flex: 0 0 auto;
+}
+
+#home-bill-list .bill-trailing .bill-amount {
+flex: 0 0 auto;
+text-align: right;
+white-space: nowrap;
+}
+
+#home-bill-list .bill-more-button {
+width: 40px;
+height: 40px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex: 0 0 40px;
+padding: 0;
+border: none;
+border-radius: var(--radius-control);
+background: transparent;
+color: var(--text-secondary);
+font-family: inherit;
+font-size: 20px;
+font-weight: 500;
+line-height: 1;
+cursor: pointer;
+-webkit-tap-highlight-color: transparent;
+transition: background-color 120ms ease, color 120ms ease;
+}
+
+#home-bill-list .bill-more-button:active {
+background: var(--primary-light);
+color: var(--primary-dark);
+}
+
+#home-bill-list .bill-item:not(:last-child)::after {
+content: "";
+position: absolute;
+right: 0;
+bottom: 0;
+left: 54px;
+height: 1px;
+background: #EEF1F0;
+}
+
+#home-bill-list .empty-text,
+#home-bill-list .empty-search-state {
+padding: var(--space-5) 0;
+}
+
+/* ===== 第二阶段：统计页视觉回调 ===== */
+/* 只优化统计页视觉，不改变统计、预算、图表和筛选逻辑 */
+#page-stats .stats-header-bar {
+height: 44px;
+gap: var(--space-2);
+margin-bottom: var(--space-3);
+}
+
+#page-stats .month-picker-bar {
+height: 44px;
+border: none;
+border-radius: 0;
+background: transparent;
+}
+
+#page-stats .month-btn {
+width: 40px;
+height: 40px;
+border-radius: 10px;
+color: var(--primary);
+}
+
+#page-stats .month-btn svg {
+width: 20px;
+height: 20px;
+}
+
+#page-stats .month-display {
+font-size: 16px;
+font-weight: 600;
+}
+
+#page-stats .set-budget-btn {
+height: 44px;
+padding: 0 14px;
+border-radius: var(--radius-control);
+font-size: 13px;
+}
+
+#page-stats .budget-progress-card {
+margin-bottom: var(--space-3);
+padding: var(--space-3);
+border: none;
+border-radius: var(--radius-control);
+box-shadow: none;
+}
+
+.budget-section-label {
+margin-bottom: 6px;
+color: var(--text-primary);
+font-size: 13px;
+font-weight: 600;
+}
+
+#page-stats .progress-bar-bg {
+height: 7px;
+margin-top: var(--space-2);
+}
+
+#page-stats .stats-overview {
+margin-bottom: var(--space-3);
+padding: var(--space-5);
+border-radius: var(--radius-control);
+box-shadow: 0 3px 10px rgba(47, 152, 115, 0.11);
+}
+
+#page-stats .stats-overview::after {
+display: none;
+}
+
+#page-stats .stats-overview .overview-title {
+font-size: 14px;
+font-weight: 600;
+color: #FFFFFF;
+}
+
+#page-stats .stat-balance-value {
+margin-top: var(--space-2);
+font-size: 28px;
+font-weight: 700;
+line-height: 1.2;
+letter-spacing: -0.4px;
+}
+
+#page-stats .stats-overview .balance-row {
+gap: var(--space-4);
+margin-top: var(--space-3);
+}
+
+#page-stats .stats-overview .balance-value-income,
+#page-stats .stats-overview .balance-value-expense {
+font-size: 18px;
+font-weight: 700;
+}
+
+#page-stats .stats-card {
+margin-bottom: var(--space-3);
+padding: var(--space-4);
+border: none;
+border-radius: var(--radius-control);
+box-shadow: none;
+}
+
+#page-stats .stats-card .section-title {
+margin: 0 0 var(--space-2);
+font-size: 16px;
+}
+
+#page-stats #chart-container {
+max-width: 200px;
+margin: var(--space-3) auto 0;
+}
+
+#page-stats #chart-legend {
+margin-top: var(--space-3);
+}
+
+#page-stats .legend-row {
+min-height: 44px;
+padding: var(--space-2) 0;
+border-bottom-color: #EEF1F0;
+}
+
+#page-stats .toggle-detail-btn {
+min-height: 44px;
+margin-top: var(--space-3);
+border-radius: var(--radius-control);
+background: var(--primary-light);
+color: var(--primary-dark);
+}
+
+#page-stats #detail-section {
+margin-bottom: var(--space-3);
+padding: 0;
+border: none;
+border-radius: 0;
+background: transparent;
+box-shadow: none;
+}
+
+#page-stats #detail-section .filter-tabs {
+margin: 0 0 var(--space-2);
+}
+
+#page-stats #detail-section .filter-tab {
+min-height: 34px;
+border-radius: 9px;
+}
+
+#page-stats #detail-section .filter-tab.active {
+background: var(--primary);
+color: #FFFFFF;
+box-shadow: none;
+}
+
+#page-stats #detail-list .bill-item {
+position: relative;
+min-height: 60px;
+padding: 9px 0;
+border-bottom: none;
+}
+
+#page-stats #detail-list .bill-item:not(:last-child)::after {
+content: "";
+position: absolute;
+right: 0;
+bottom: 0;
+left: 54px;
+height: 1px;
+background: #EEF1F0;
+}
+
+#page-stats #detail-list .empty-text {
+padding: var(--space-5) 0;
+}
+
+#page-stats .stats-overview,
+#page-stats .stats-overview .balance-item {
+min-width: 0;
+}
+
+#page-stats .stat-balance-value,
+#page-stats .stats-overview .balance-value-income,
+#page-stats .stats-overview .balance-value-expense {
+font-variant-numeric: tabular-nums;
+white-space: nowrap;
+}
+
+#page-stats .budget-progress-card.is-unset .progress-bar-bg {
+display: none;
+}
+
+#page-stats .budget-progress-card.is-near .budget-status-text,
+#page-stats .budget-progress-card.is-at-limit .budget-status-text {
+color: var(--primary-dark);
+font-weight: 600;
+}
+
+#page-stats .budget-progress-card.is-over .budget-status-text {
+color: var(--expense);
+font-weight: 600;
+}
+
+#page-stats .budget-status-text {
+margin-top: var(--space-2);
+color: var(--text-secondary);
+font-size: 12px;
+line-height: 1.4;
+}
+
+#page-stats #chart-content[hidden],
+#page-stats #chart-empty-state[hidden],
+#page-stats #chart-unavailable-state[hidden],
+#page-stats #stats-insight[hidden] {
+display: none !important;
+}
+
+#page-stats .stats-empty-state {
+padding: 34px var(--space-4) 30px;
+text-align: center;
+}
+
+#page-stats .stats-empty-state.is-compact {
+margin: var(--space-2) 0;
+padding: var(--space-3);
+border-radius: var(--radius-control);
+background: #F7F9F8;
+}
+
+#page-stats .stats-empty-title {
+color: var(--text-primary);
+font-size: 14px;
+font-weight: 600;
+}
+
+#page-stats .stats-empty-desc {
+max-width: 240px;
+margin: var(--space-2) auto 0;
+color: var(--text-secondary);
+font-size: 12px;
+line-height: 1.55;
+}
+
+#page-stats #chart-content {
+min-width: 0;
+}
+
+#page-stats #chart-legend {
+width: 100%;
+margin-top: var(--space-3);
+}
+
+#page-stats .legend-left {
+min-width: 0;
+flex: 1 1 auto;
+}
+
+#page-stats .legend-name {
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+#page-stats .legend-value {
+flex: 0 0 auto;
+white-space: nowrap;
+}
+
+#page-stats .stats-insight {
+margin-top: var(--space-3);
+padding: 10px var(--space-3);
+border-radius: var(--radius-control);
+background: #F7F9F8;
+color: var(--text-secondary);
+font-size: 12px;
+line-height: 1.5;
+}
+
+#page-stats #detail-section .filter-tab {
+padding: 0 var(--space-2);
+border: none;
+background: transparent;
+font-family: inherit;
+}
+
+#page-stats #detail-section .filter-tab.active {
+background: var(--primary);
+}
+
+#page-stats #detail-list .bill-left,
+#page-stats #detail-list .bill-copy {
+min-width: 0;
+flex: 1 1 auto;
+}
+
+#page-stats #detail-list .bill-meta {
+display: flex;
+align-items: center;
+gap: var(--space-1);
+min-width: 0;
+margin-top: var(--space-1);
+color: var(--text-secondary);
+font-size: 12px;
+line-height: 1.35;
+}
+
+#page-stats #detail-list .bill-date,
+#page-stats #detail-list .bill-meta-separator {
+flex: 0 0 auto;
+margin-top: 0;
+white-space: nowrap;
+}
+
+#page-stats #detail-list .bill-note {
+min-width: 0;
+overflow: hidden;
+flex: 1 1 auto;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+#page-stats #detail-list .bill-amount {
+flex: 0 0 auto;
+text-align: right;
+white-space: nowrap;
+}
+
+#page-stats button:focus-visible {
+outline: 2px solid rgba(62, 180, 137, 0.72);
+outline-offset: 2px;
+}
+
+.empty-search-state {
+padding: var(--space-6) 0;
+text-align: center;
+}
+
+.empty-search-title {
+color: var(--text-primary);
+font-size: 14px;
+font-weight: 600;
+}
+
+.empty-search-desc {
+margin-top: var(--space-2);
+color: var(--text-secondary);
+font-size: 12px;
+}
+
+.stats-header-bar {
+display: flex;
+align-items: center;
+gap: var(--space-3);
+margin-bottom: var(--space-3);
+}
+
+.month-picker-bar {
+min-width: 0;
+height: 48px;
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: space-between;
+border: 1px solid var(--divider);
+border-radius: var(--radius-control);
+background: var(--surface);
+}
+
+.month-btn {
+width: 44px;
+height: 44px;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 0;
+border: none;
+border-radius: var(--radius-control);
+background: transparent;
+color: var(--text-primary);
+cursor: pointer;
+transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.month-btn svg {
+width: 20px;
+height: 20px;
+}
+
+.month-display {
+font-size: 15px;
+font-weight: 600;
+white-space: nowrap;
+}
+
+.set-budget-btn {
+height: 48px;
+padding: 0 var(--space-4);
+border: none;
+border-radius: var(--radius-control);
+background: var(--primary);
+color: #FFFFFF;
+font-size: 13px;
+font-weight: 600;
+white-space: nowrap;
+cursor: pointer;
+}
+
+.budget-progress-card {
+margin-bottom: var(--space-4);
+padding: var(--space-4);
+border: 1px solid var(--divider);
+border-radius: var(--radius-section);
+background: var(--surface);
+}
+
+.budget-progress-meta {
+display: flex;
+justify-content: space-between;
+gap: var(--space-3);
+color: var(--text-secondary);
+font-size: 12px;
+}
+
+.progress-bar-bg {
+height: 7px;
+overflow: hidden;
+margin-top: var(--space-2);
+border-radius: 999px;
+background: var(--primary-light);
+}
+
+.progress-bar-fill {
+width: 0%;
+height: 100%;
+border-radius: inherit;
+background: var(--primary);
+transition: width 260ms ease, background-color 260ms ease;
+}
+
+.progress-bar-fill.overbudget {
+background: var(--expense);
+}
+
+.stats-overview {
+margin-bottom: var(--space-4);
+}
+
+.stats-card {
+padding: var(--space-4);
+box-shadow: none;
+}
+
+.stats-card .section-title {
+margin-top: 0;
+}
+
+#chart-container {
+max-width: 240px;
+margin: var(--space-4) auto 0;
+}
+
+#chart-legend {
+margin-top: var(--space-4);
+}
+
+.legend-row {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: var(--space-3);
+padding: var(--space-2) 0;
+border-bottom: 1px solid var(--divider);
+font-size: 13px;
+}
+
+.legend-row:last-child {
+border-bottom: none;
+}
+
+.legend-left {
+display: flex;
+align-items: center;
+gap: var(--space-2);
+}
+
+.legend-dot {
+width: 10px;
+height: 10px;
+display: inline-block;
+border-radius: 50%;
+}
+
+.legend-amount {
+color: var(--text-primary);
+font-weight: 600;
+}
+
+.legend-pct {
+margin-left: var(--space-2);
+color: var(--text-secondary);
+}
+
+.toggle-detail-btn {
+width: 100%;
+min-height: 44px;
+margin-top: var(--space-3);
+padding: 0 var(--space-3);
+border: none;
+border-radius: var(--radius-control);
+background: var(--primary-light);
+color: var(--primary-dark);
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+}
+
+#detail-section {
+box-shadow: none;
+}
+
+#detail-list .bill-item {
+border-bottom: 1px solid var(--divider);
+}
+
+#detail-list .bill-item:last-child {
+border-bottom: none;
+}
+
+.nav-bar {
+position: fixed;
+left: 0;
+right: 0;
+bottom: 0;
+z-index: 20;
+height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+display: flex;
+padding-bottom: env(safe-area-inset-bottom);
+border-top: 1px solid var(--divider);
+background: rgba(255, 255, 255, 0.98);
+box-shadow: 0 -4px 14px rgba(26, 43, 36, 0.035);
+}
+
+.nav-item {
+min-width: 0;
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 3px;
+color: #929A96;
+font-size: 11px;
+font-weight: 500;
+cursor: pointer;
+transition: color 150ms ease, opacity 120ms ease;
+}
+
+.nav-item svg {
+width: 23px;
+height: 23px;
+}
+
+.nav-item.active {
+color: var(--primary);
+}
+
+.nav-center-space {
+width: 76px;
+flex: 0 0 76px;
+}
+
+.fab-btn {
+position: fixed;
+left: 50%;
+bottom: calc(env(safe-area-inset-bottom) + 38px);
+z-index: 30;
+width: 58px;
+height: 58px;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 0 0 3px;
+border: 4px solid var(--surface);
+border-radius: 50%;
+background: var(--primary);
+color: #FFFFFF;
+font-size: 30px;
+font-weight: 400;
+line-height: 1;
+box-shadow: 0 7px 18px rgba(47, 152, 115, 0.28);
+transform: translateX(-50%);
+cursor: pointer;
+transition: transform 140ms ease, box-shadow 140ms ease, opacity 120ms ease;
+}
+
+.modal-mask,
+.confirm-mask {
+position: fixed;
+inset: 0;
+display: none;
+background: rgba(20, 27, 24, 0.42);
+}
+
+.modal-mask {
+z-index: 100;
+align-items: flex-end;
+justify-content: center;
+}
+
+.modal-mask.active,
+.confirm-mask.active {
+display: flex;
+}
+
+.modal-content {
+width: 100%;
+max-width: 600px;
+max-height: calc(92vh - env(safe-area-inset-top));
+overflow-y: auto;
+padding: var(--space-3) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom));
+border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+background: var(--surface);
+animation: slideUp 240ms ease-out;
+}
+
+#add-modal {
+--bill-modal-viewport-height: 100vh;
+--bill-modal-viewport-top: 0px;
+--bill-modal-max-height: calc(92vh - env(safe-area-inset-top));
+top: var(--bill-modal-viewport-top);
+bottom: auto;
+height: var(--bill-modal-viewport-height);
+}
+
+@supports (height: 100dvh) {
+#add-modal {
+--bill-modal-viewport-height: 100dvh;
+--bill-modal-max-height: calc(92dvh - env(safe-area-inset-top));
+}
+}
+
+#add-modal .modal-content {
+display: flex;
+flex-direction: column;
+max-height: var(--bill-modal-max-height);
+overflow: hidden;
+padding: var(--space-3) 0 0;
+}
+
+#add-modal .bill-modal-header {
+flex: 0 0 auto;
+padding: 0 var(--space-5);
+}
+
+#add-modal .bill-modal-scroll {
+min-height: 0;
+flex: 1 1 auto;
+overflow-x: hidden;
+overflow-y: auto;
+padding: 0 var(--space-5);
+overscroll-behavior-y: contain;
+scroll-padding-block: var(--space-3) var(--space-4);
+-webkit-overflow-scrolling: touch;
+}
+
+#add-modal .bill-modal-footer {
+flex: 0 0 auto;
+padding: 0 var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom));
+background: var(--surface);
+}
+
+body.option-sheet-open {
+overflow: hidden;
+}
+
+/* ===== 全局统一 Option Sheet ===== */
+.option-sheet-mask {
+position: fixed;
+inset: 0;
+z-index: 260;
+display: flex;
+align-items: flex-end;
+justify-content: center;
+visibility: hidden;
+background: rgba(20, 27, 24, 0.42);
+opacity: 0;
+pointer-events: none;
+transition: opacity 240ms ease, visibility 0s linear 240ms;
+}
+
+.option-sheet-mask.active {
+visibility: visible;
+opacity: 1;
+pointer-events: auto;
+transition-delay: 0s;
+}
+
+.option-sheet-panel {
+width: 100%;
+max-width: 600px;
+max-height: 70vh;
+max-height: 70dvh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+padding-top: var(--space-3);
+border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+background: var(--surface);
+box-shadow: 0 -12px 32px rgba(20, 27, 24, 0.14);
+transform: translateY(100%);
+transition: transform 240ms cubic-bezier(0.22, 0.8, 0.32, 1);
+}
+
+.option-sheet-mask.active .option-sheet-panel {
+transform: translateY(0);
+}
+
+.option-sheet-panel .sheet-handle {
+flex: 0 0 auto;
+margin-bottom: var(--space-3);
+}
+
+.option-sheet-header {
+flex: 0 0 auto;
+padding: 0 var(--space-5) var(--space-3);
+}
+
+.option-sheet-title {
+font-size: 18px;
+font-weight: 600;
+line-height: 1.4;
+text-align: center;
+}
+
+.option-sheet-scroll {
+min-height: 0;
+overflow-y: auto;
+overscroll-behavior: contain;
+-webkit-overflow-scrolling: touch;
+padding: 0 var(--space-4) var(--space-3);
+}
+
+.option-sheet-list {
+overflow: hidden;
+border: 1px solid var(--divider);
+border-radius: var(--radius-section);
+background: var(--surface);
+}
+
+.option-sheet-option {
+position: relative;
+width: 100%;
+min-height: 56px;
+display: flex;
+align-items: center;
+gap: var(--space-3);
+padding: 0 var(--space-4);
+border: none;
+border-bottom: 1px solid var(--divider);
+background: var(--surface);
+color: var(--text-primary);
+font-size: 15px;
+text-align: left;
+cursor: pointer;
+transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.option-sheet-option:last-child {
+border-bottom: none;
+}
+
+.option-sheet-option.selected {
+background: var(--primary-light);
+color: var(--primary-dark);
+font-weight: 600;
+}
+
+.option-sheet-option-leading {
+width: 34px;
+height: 34px;
+flex: 0 0 34px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+color: var(--text-primary);
+}
+
+.option-sheet-option-leading svg {
+width: 18px;
+height: 18px;
+}
+
+.option-sheet-option-text {
+min-width: 0;
+flex: 1;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+.option-sheet-radio {
+position: relative;
+width: 22px;
+height: 22px;
+flex: 0 0 22px;
+border: 2px solid var(--text-secondary);
+border-radius: 50%;
+transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
+}
+
+.option-sheet-option.selected .option-sheet-radio {
+border-color: var(--primary);
+background: var(--primary);
+}
+
+.option-sheet-option.selected .option-sheet-radio::after {
+content: "";
+position: absolute;
+inset: 6px;
+border-radius: 50%;
+background: var(--surface);
+}
+
+.option-sheet-footer {
+flex: 0 0 auto;
+padding: var(--space-2) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+border-top: 1px solid var(--divider);
+background: var(--surface);
+}
+
+.option-sheet-cancel {
+width: 100%;
+height: 52px;
+border: none;
+border-radius: var(--radius-control);
+background: var(--background);
+color: var(--text-primary);
+font-size: 16px;
+font-weight: 600;
+cursor: pointer;
+transition: background-color 120ms ease, transform 120ms ease, opacity 120ms ease;
+}
+
+.sheet-handle {
+width: 36px;
+height: 4px;
+margin: 0 auto var(--space-4);
+border-radius: 999px;
+background: #D9DEDC;
+}
+
+.sheet-title {
+margin-bottom: var(--space-4);
+font-size: 18px;
+font-weight: 600;
+line-height: 1.4;
+}
+
+#add-modal .bill-modal-header {
+display: grid;
+grid-template-columns: 48px minmax(0, 1fr) 48px;
+align-items: center;
+gap: var(--space-2);
+margin-bottom: var(--space-4);
+}
+
+#add-modal .bill-modal-header .sheet-title {
+margin-bottom: 0;
+text-align: center;
+}
+
+#add-modal .bill-modal-cancel {
+width: 48px;
+height: 40px;
+padding: 0;
+border: none;
+border-radius: var(--radius-control);
+background: transparent;
+color: var(--text-secondary);
+font-family: inherit;
+font-size: 15px;
+font-weight: 500;
+cursor: pointer;
+-webkit-tap-highlight-color: transparent;
+transition: background-color 120ms ease, color 120ms ease;
+}
+
+#add-modal .bill-modal-cancel:active {
+background: var(--primary-light);
+color: var(--primary-dark);
+}
+
+#add-modal .bill-modal-cancel:focus-visible {
+outline: 2px solid var(--primary);
+outline-offset: 2px;
+}
+
+#add-modal .bill-modal-header-spacer {
+width: 48px;
+height: 40px;
+}
+
+#add-modal .bill-type-group {
+margin-bottom: var(--space-3);
+}
+
+#add-modal .bill-type-toggle {
+height: 44px;
+display: grid;
+grid-template-columns: repeat(2, minmax(0, 1fr));
+gap: var(--space-1);
+padding: 2px;
+border-radius: var(--radius-control);
+background: #EEF1F0;
+}
+
+#add-modal .bill-type-option {
+min-width: 0;
+height: 40px;
+padding: 0 var(--space-3);
+border: 1px solid transparent;
+border-radius: 9px;
+background: transparent;
+color: var(--text-secondary);
+font-family: inherit;
+font-size: 14px;
+font-weight: 500;
+cursor: pointer;
+transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+#add-modal .bill-type-option.selected {
+border-color: rgba(62, 180, 137, 0.32);
+background: var(--surface);
+color: var(--primary-dark);
+font-weight: 600;
+}
+
+#add-modal .bill-type-option:active {
+background: var(--primary-light);
+}
+
+#add-modal .bill-type-option:focus-visible {
+outline: 2px solid var(--primary);
+outline-offset: 1px;
+}
+
+#add-modal .bill-amount-field {
+height: 60px;
+display: flex;
+align-items: center;
+gap: var(--space-2);
+padding: 0 var(--space-4);
+border: 1px solid transparent;
+border-radius: var(--radius-section);
+background: #F3F5F4;
+transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+#add-modal .bill-amount-field:focus-within {
+border-color: rgba(62, 180, 137, 0.48);
+background: var(--surface);
+}
+
+#add-modal .bill-amount-currency {
+flex: 0 0 auto;
+color: var(--text-primary);
+font-size: 20px;
+font-weight: 500;
+line-height: 1;
+}
+
+#add-modal .bill-amount-control {
+min-width: 0;
+height: 100%;
+flex: 1;
+padding: 0;
+border: none;
+border-radius: 0;
+background: transparent;
+box-shadow: none;
+color: var(--text-primary);
+font-size: 28px;
+font-weight: 600;
+line-height: 1.2;
+letter-spacing: -0.2px;
+appearance: textfield;
+-moz-appearance: textfield;
+}
+
+#add-modal .bill-amount-control::-webkit-outer-spin-button,
+#add-modal .bill-amount-control::-webkit-inner-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+
+#add-modal .bill-amount-control:focus {
+border-color: transparent;
+background: transparent;
+box-shadow: none;
+}
+
+#add-modal .bill-amount-control::placeholder {
+color: var(--text-secondary);
+opacity: 1;
+}
+
+#add-modal .bill-field-error {
+display: none;
+margin-top: var(--space-1);
+color: var(--expense);
+font-size: 12px;
+line-height: 1.4;
+}
+
+#add-modal .bill-field-error.visible {
+display: block;
+}
+
+#add-modal .bill-amount-field.is-invalid,
+#add-modal .bill-amount-field.is-invalid:focus-within,
+#add-modal .bill-time-trigger.is-invalid,
+#add-modal .bill-time-trigger.is-invalid:focus {
+border-color: rgba(230, 83, 83, 0.58);
+box-shadow: none;
+}
+
+/* ===== 新增 / 编辑账单：移动端时间选择 ===== */
+.bill-time-value-source,
+.bill-time-native-source {
+position: absolute !important;
+width: 1px !important;
+height: 1px !important;
+overflow: hidden !important;
+clip: rect(0 0 0 0) !important;
+clip-path: inset(50%) !important;
+white-space: nowrap !important;
+opacity: 0 !important;
+pointer-events: none !important;
+}
+
+#add-modal .bill-time-trigger {
+width: 100%;
+height: 46px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: var(--space-3);
+padding: 0 var(--space-3);
+border: 1px solid transparent;
+border-radius: var(--radius-control);
+outline: none;
+background: #F0F3F2;
+color: var(--text-primary);
+font-family: inherit;
+font-size: 15px;
+text-align: left;
+cursor: pointer;
+transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+#add-modal .bill-time-trigger:active {
+background: var(--primary-light);
+}
+
+#add-modal .bill-time-trigger:focus-visible,
+#add-modal .bill-time-trigger[aria-expanded="true"] {
+border-color: rgba(62, 180, 137, 0.48);
+background: var(--surface);
+box-shadow: 0 0 0 3px rgba(62, 180, 137, 0.08);
+}
+
+.bill-time-trigger-value {
+min-width: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+.bill-time-chevron {
+width: 18px;
+height: 18px;
+flex: 0 0 18px;
+color: var(--text-secondary);
+}
+
+.bill-time-sheet-mask {
+position: fixed;
+inset: 0;
+z-index: 240;
+display: flex;
+align-items: flex-end;
+justify-content: center;
+visibility: hidden;
+background: rgba(20, 27, 24, 0.42);
+opacity: 0;
+pointer-events: none;
+transition: opacity 200ms ease, visibility 0s linear 200ms;
+}
+
+.bill-time-sheet-mask.active {
+visibility: visible;
+opacity: 1;
+pointer-events: auto;
+transition-delay: 0s;
+}
+
+.bill-time-sheet-panel {
+width: 100%;
+max-width: 600px;
+max-height: calc(100vh - env(safe-area-inset-top) - var(--space-3));
+overflow-y: auto;
+padding: var(--space-3) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom));
+border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+background: var(--surface);
+transform: translateY(100%);
+transition: transform 220ms cubic-bezier(0.22, 0.8, 0.32, 1);
+overscroll-behavior-y: contain;
+-webkit-overflow-scrolling: touch;
+}
+
+@supports (height: 100dvh) {
+.bill-time-sheet-panel {
+max-height: calc(100dvh - env(safe-area-inset-top) - var(--space-3));
+}
+}
+
+.bill-time-sheet-mask.active .bill-time-sheet-panel {
+transform: translateY(0);
+}
+
+.bill-time-sheet-header {
+display: grid;
+grid-template-columns: 48px minmax(0, 1fr) 48px;
+align-items: center;
+gap: var(--space-2);
+margin-bottom: var(--space-5);
+}
+
+.bill-time-sheet-title {
+margin: 0;
+font-size: 18px;
+font-weight: 600;
+line-height: 1.4;
+text-align: center;
+}
+
+.bill-time-sheet-action {
+width: 48px;
+height: 40px;
+padding: 0;
+border: none;
+border-radius: var(--radius-control);
+background: transparent;
+font-family: inherit;
+font-size: 15px;
+font-weight: 500;
+cursor: pointer;
+transition: background-color 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+
+.bill-time-sheet-cancel {
+color: var(--text-secondary);
+}
+
+.bill-time-sheet-confirm {
+color: var(--primary-dark);
+font-weight: 600;
+}
+
+.bill-time-sheet-action:active {
+background: var(--primary-light);
+}
+
+.bill-time-sheet-action:focus-visible,
+.bill-time-choice-button:focus-visible,
+.bill-time-now:focus-visible {
+outline: 2px solid var(--primary);
+outline-offset: 2px;
+}
+
+.bill-time-sheet-action:disabled {
+color: #A2AAA6;
+opacity: 0.72;
+cursor: default;
+}
+
+.bill-time-sheet-field {
+position: relative;
+margin-bottom: var(--space-4);
+}
+
+.bill-time-choice-button {
+width: 100%;
+min-height: 52px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: var(--space-3);
+padding: 0 var(--space-4);
+border: 1px solid transparent;
+border-radius: var(--radius-control);
+background: #F0F3F2;
+color: var(--text-primary);
+font-family: inherit;
+font-size: 15px;
+text-align: left;
+cursor: pointer;
+transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.bill-time-choice-button:active {
+background: var(--primary-light);
+}
+
+.bill-time-clock {
+min-height: 64px;
+font-size: 24px;
+font-weight: 600;
+letter-spacing: 0.5px;
+}
+
+.bill-time-now {
+width: 100%;
+height: 44px;
+border: none;
+border-radius: var(--radius-control);
+background: var(--primary-light);
+color: var(--primary-dark);
+font-family: inherit;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.bill-time-now:active {
+background: #DDF1EA;
+}
+
+@keyframes slideUp {
+from { transform: translateY(100%); }
+to { transform: translateY(0); }
+}
+
+.category-grid {
+display: grid;
+grid-template-columns: repeat(4, minmax(0, 1fr));
+gap: var(--space-2);
+margin-top: var(--space-2);
+}
+
+.category-card {
+width: 100%;
+min-width: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+margin: 0;
+padding: var(--space-2) var(--space-1);
+border: 1.5px solid transparent;
+border-radius: var(--radius-control);
+font: inherit;
+color: inherit;
+text-align: center;
+appearance: none;
+-webkit-appearance: none;
+cursor: pointer;
+-webkit-tap-highlight-color: transparent;
+transition: border-color 140ms ease, transform 120ms ease, opacity 120ms ease;
+}
+
+.category-card.selected {
+border-color: var(--primary);
+}
+
+.category-card:focus-visible {
+outline: 2px solid rgba(62, 180, 137, 0.72);
+outline-offset: 2px;
+}
+
+.category-card-icon {
+width: 38px;
+height: 38px;
+display: flex;
+align-items: center;
+justify-content: center;
+margin-bottom: var(--space-1);
+border-radius: 50%;
+background: rgba(255, 255, 255, 0.84);
+color: var(--text-primary);
+}
+
+.category-card-name {
+overflow: hidden;
+max-width: 100%;
+font-size: 12px;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+.btn-primary {
+width: 100%;
+height: 48px;
+margin-top: var(--space-2);
+padding: 0 var(--space-4);
+border: none;
+border-radius: var(--radius-control);
+background: var(--primary);
+color: #FFFFFF;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+transition: transform 120ms ease, opacity 120ms ease, background-color 120ms ease;
+}
+
+.warning-text {
+display: none;
+align-items: flex-start;
+gap: var(--space-2);
+margin-top: var(--space-2);
+color: var(--warning);
+font-size: 13px;
+font-weight: 600;
+line-height: 1.4;
+}
+
+.warning-text svg {
+width: 18px;
+height: 18px;
+flex: 0 0 18px;
+}
+
+.bill-action-sheet {
+z-index: 180;
+}
+
+.action-sheet-content {
+width: 100%;
+max-width: 600px;
+padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+background: var(--surface);
+box-shadow: 0 -12px 32px rgba(20, 27, 24, 0.14);
+animation: slideUp 240ms ease-out;
+}
+
+.action-sheet-handle {
+margin-bottom: var(--space-3);
+background: var(--divider);
+}
+
+.action-sheet-group {
+overflow: hidden;
+border-radius: var(--radius-section);
+background: var(--background);
+}
+
+.action-sheet-btn {
+width: 100%;
+min-height: 52px;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: var(--space-2);
+padding: 0 var(--space-4);
+border: none;
+border-bottom: 1px solid var(--divider);
+background: var(--background);
+font-size: 16px;
+font-weight: 600;
+cursor: pointer;
+}
+
+.action-sheet-btn:last-child {
+border-bottom: none;
+}
+
+.action-sheet-btn svg {
+width: 20px;
+height: 20px;
+}
+
+.action-sheet-btn-edit { color: var(--primary-dark); }
+.action-sheet-btn-delete { color: var(--expense); }
+.action-sheet-cancel { margin-top: var(--space-2); }
+.action-sheet-btn-cancel { color: var(--text-primary); }
+
+.confirm-mask {
+z-index: 200;
+align-items: center;
+justify-content: center;
+padding: var(--space-5);
+}
+
+.confirm-box {
+width: min(100%, 300px);
+padding: var(--space-6) var(--space-5) var(--space-5);
+border-radius: 20px;
+background: var(--surface);
+text-align: center;
+box-shadow: 0 12px 30px rgba(20, 27, 24, 0.14);
+animation: confirmPop 180ms ease-out;
+}
+
+@keyframes confirmPop {
+from { opacity: 0; transform: scale(0.94); }
+to { opacity: 1; transform: scale(1); }
+}
+
+.confirm-icon {
+width: 48px;
+height: 48px;
+display: flex;
+align-items: center;
+justify-content: center;
+margin: 0 auto var(--space-3);
+border-radius: 50%;
+background: #FFF0F0;
+color: var(--expense);
+}
+
+.confirm-icon svg {
+width: 24px;
+height: 24px;
+}
+
+.confirm-title {
+margin-bottom: var(--space-2);
+font-size: 18px;
+font-weight: 600;
+}
+
+.confirm-desc {
+margin-bottom: var(--space-3);
+color: var(--text-secondary);
+font-size: 13px;
+line-height: 1.5;
+}
+
+.confirm-bill-info {
+margin-bottom: var(--space-4);
+padding: var(--space-3);
+border-radius: var(--radius-control);
+background: var(--background);
+color: var(--text-primary);
+font-size: 13px;
+word-break: break-all;
+}
+
+.confirm-bill-info > div:first-child {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: var(--space-2);
+}
+
+.confirm-bill-info svg {
+width: 18px;
+height: 18px;
+flex: 0 0 18px;
+}
+
+.confirm-bill-amount {
+margin-top: var(--space-1);
+color: var(--expense);
+font-size: 18px;
+font-weight: 700;
+}
+
+.confirm-bill-amount.income {
+color: var(--income);
+}
+
+.confirm-btns {
+display: flex;
+gap: var(--space-3);
+}
+
+.confirm-btn {
+height: 44px;
+flex: 1;
+padding: 0 var(--space-3);
+border: none;
+border-radius: var(--radius-control);
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+}
+
+.confirm-btn-cancel {
+background: #EEF1F0;
+color: var(--text-primary);
+}
+
+.confirm-btn-delete {
+background: var(--expense);
+color: #FFFFFF;
+}
+
+#discard-bill-changes-modal .confirm-btn-cancel {
+background: var(--primary);
+color: #FFFFFF;
+}
+
+#discard-bill-changes-modal .confirm-btn-delete {
+background: #FFF0F0;
+color: var(--expense);
+}
+
+.nav-item:active,
+.filter-tab:active,
+.month-btn:active,
+.set-budget-btn:active,
+.btn-primary:active,
+.toggle-detail-btn:active,
+.action-sheet-btn:active,
+.confirm-btn:active,
+.category-card:active,
+.option-sheet-trigger:active,
+.option-sheet-cancel:active {
+opacity: 0.85;
+}
+
+.filter-tab:active,
+.month-btn:active,
+.btn-primary:active,
+.category-card:active,
+.option-sheet-trigger:active,
+.option-sheet-cancel:active,
+.option-sheet-option:active {
+transform: scale(0.97);
+}
+
+.fab-btn:active {
+transform: translateX(-50%) scale(0.94);
+box-shadow: 0 4px 12px rgba(47, 152, 115, 0.22);
+}
+
+@media (min-width: 900px) {
+.container {
+padding-left: max(var(--space-4), calc((100vw - 760px) / 2));
+padding-right: max(var(--space-4), calc((100vw - 760px) / 2));
+}
+}
+
+@media (max-width: 360px) {
+.balance-value-income,
+.balance-value-expense {
+font-size: 22px;
+}
+.stats-header-bar {
+gap: var(--space-2);
+}
+.set-budget-btn {
+padding: 0 var(--space-3);
+}
+.custom-date-range {
+grid-template-columns: 1fr;
+}
+.custom-date-separator {
+display: none;
+}
+}
+
+@media (prefers-reduced-motion: reduce) {
+*,
+*::before,
+*::after {
+scroll-behavior: auto !important;
+animation-duration: 1ms !important;
+transition-duration: 1ms !important;
+}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ===== 页面1：账单页 ===== -->
+<div id="page-bills" class="page active">
+
+<!-- 顶部概览卡片 -->
+<div class="overview-card">
+<div class="overview-title">本月总概览</div>
+<div class="balance-row">
+<div class="balance-item">
+<div class="balance-label">收入</div>
+<div class="balance-value-income" id="home-income">+￥0.00</div>
+</div>
+<div class="balance-item">
+<div class="balance-label">支出</div>
+<div class="balance-value-expense" id="home-expense">-￥0.00</div>
+</div>
+</div>
+</div>
+
+<!-- ===== 第8关：账单搜索与筛选 ===== -->
+<div class="card bill-filter-card">
+<div class="bill-search-box">
+<span class="bill-search-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="11" cy="11" r="7"></circle>
+<path d="m20 20-4-4"></path>
+</svg>
+</span>
+<input type="search" id="home-search-input" class="form-control bill-search-input" placeholder="搜索账单" aria-label="搜索账单">
+</div>
+
+<div class="home-filter-actions">
+<!-- 类型筛选：全部 / 支出 / 收入 -->
+<div class="filter-tabs home-type-tabs" id="home-type-filter" role="group" aria-label="收支类型">
+<button type="button" class="filter-tab active" data-filter="all" aria-pressed="true">全部</button>
+<button type="button" class="filter-tab" data-filter="expense" aria-pressed="false">支出</button>
+<button type="button" class="filter-tab" data-filter="income" aria-pressed="false">收入</button>
+</div>
+<button type="button" class="home-filter-button" id="home-filter-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="home-filter-sheet">
+<span id="home-filter-button-label">筛选</span>
+</button>
+</div>
+</div>
+
+<!-- 账单记录 / 搜索结果 -->
+<div class="section-title" id="home-list-title">账单记录</div>
+<div id="home-bill-list">
+<div class="empty-text">暂无账单记录</div>
+</div>
+
+</div>
+
+<!-- ===== 页面2：统计页 ===== -->
+<div id="page-stats" class="page">
+
+<!-- 月度切换栏 -->
+<div class="stats-header-bar">
+<div class="month-picker-bar">
+<button class="month-btn" id="prev-month" aria-label="上一个月">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m15 18-6-6 6-6"></path>
+</svg>
+</button>
+<div class="month-display" aria-live="polite">
+<span id="month-text">2026年08月</span>
+</div>
+<button class="month-btn" id="next-month" aria-label="下一个月">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 18 6-6-6-6"></path>
+</svg>
+</button>
+</div>
+<button type="button" class="set-budget-btn" id="open-budget-btn">设置预算</button>
+</div>
+
+<!-- 月度结余卡片 -->
+<div class="overview-card stats-overview" aria-labelledby="stats-overview-title">
+<div class="overview-title" id="stats-overview-title">月度结余</div>
+<div class="stat-balance-value" id="stat-balance">￥0.00</div>
+<div class="balance-row">
+<div class="balance-item">
+<div class="balance-label">总收入</div>
+<div class="balance-value-income" id="stat-income">+￥0.00</div>
+</div>
+<div class="balance-item">
+<div class="balance-label">总支出</div>
+<div class="balance-value-expense" id="stat-expense">-￥0.00</div>
+</div>
+</div>
+</div>
+
+<!-- 第5关补充：预算进度条 -->
+<div class="budget-progress-card is-unset" id="budget-progress-card">
+<div class="budget-section-label" id="budget-section-label">预算</div>
+<div class="budget-progress-meta">
+<span id="budget-used-text">本月已支出 ￥0.00</span>
+<span id="budget-percent-text">未设置预算</span>
+</div>
+<div class="progress-bar-bg" id="budget-progress-track" role="progressbar" aria-labelledby="budget-section-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="未设置预算">
+<div id="budget-progress-fill" class="progress-bar-fill"></div>
+</div>
+<div class="budget-status-text" id="budget-status-text" aria-live="polite">设置预算后可查看使用进度</div>
+</div>
+
+<!-- 饼图区域 -->
+<div class="card stats-card" aria-labelledby="expense-category-title">
+<div class="section-title" id="expense-category-title">支出分类统计</div>
+<div class="stats-empty-state" id="chart-empty-state">
+<div class="stats-empty-title" id="chart-empty-title">本月暂无支出</div>
+<div class="stats-empty-desc" id="chart-empty-desc">记一笔支出后，这里会显示分类占比。</div>
+</div>
+<div id="chart-content" hidden>
+<div class="stats-empty-state is-compact" id="chart-unavailable-state" hidden>
+<div class="stats-empty-title">分类图表暂不可用</div>
+<div class="stats-empty-desc">分类金额和明细仍可正常查看。</div>
+</div>
+<div id="chart-container">
+<canvas id="categoryChart" role="img" aria-label="本月暂无支出分类统计"></canvas>
+</div>
+<div class="stats-insight" id="stats-insight" hidden></div>
+<div id="chart-legend"></div>
+</div>
+<!-- 第5关：展开/收起明细按钮 -->
+<button type="button" class="toggle-detail-btn" id="toggle-detail-btn" aria-expanded="false" aria-controls="detail-section">展开明细 ▼</button>
+</div>
+
+<!-- 第5关：明细列表区域（默认隐藏） -->
+<div class="card" id="detail-section" style="display:none" aria-hidden="true">
+<!-- 筛选标签：全部 / 仅支出 / 仅收入 -->
+<div class="filter-tabs" role="group" aria-label="明细筛选">
+<button type="button" class="filter-tab active" data-filter="all" aria-pressed="true">全部</button>
+<button type="button" class="filter-tab" data-filter="expense" aria-pressed="false">仅支出</button>
+<button type="button" class="filter-tab" data-filter="income" aria-pressed="false">仅收入</button>
+</div>
+<div id="detail-list"></div>
+</div>
+
+</div>
+
+<!-- ===== 底部导航栏 ===== -->
+<div class="nav-bar">
+<div class="nav-item active" data-target="page-bills">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"></path>
+<path d="M9 8h6M9 12h6"></path>
+</svg>
+<span>账单</span>
+</div>
+<div class="nav-center-space" aria-hidden="true"></div>
+<div class="nav-item" data-target="page-stats">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path>
+</svg>
+<span>统计</span>
+</div>
+</div>
+
+<!-- ===== 悬浮添加按钮 ===== -->
+<button class="fab-btn" id="open-add-modal">+</button>
+
+<!-- ===== 记账弹窗（第4关会实现功能） ===== -->
+<div class="modal-mask" id="add-modal">
+<div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="bill-modal-title">
+<div class="bill-modal-header">
+<button type="button" class="bill-modal-cancel" id="cancel-bill-modal">取消</button>
+<div class="sheet-title" id="bill-modal-title">记一笔</div>
+<span class="bill-modal-header-spacer" aria-hidden="true"></span>
+</div>
+
+<div class="bill-modal-scroll" id="bill-modal-scroll">
+<!-- 类型选择：支出 / 收入 -->
+<div class="form-group bill-type-group">
+<div class="form-label" id="bill-type-label">类型</div>
+<div class="bill-type-toggle" role="group" aria-labelledby="bill-type-label">
+<button type="button" class="bill-type-option selected" data-bill-type="expense" aria-pressed="true">支出</button>
+<button type="button" class="bill-type-option" data-bill-type="income" aria-pressed="false">收入</button>
+</div>
+<select id="add-type" class="form-control option-sheet-native-select" tabindex="-1" aria-hidden="true">
+<option value="expense">支出</option>
+<option value="income">收入</option>
+</select>
+</div>
+
+<!-- 金额主输入 -->
+<div class="form-group bill-amount-group">
+<label class="form-label" for="add-amount">金额</label>
+<div class="bill-amount-field">
+<span class="bill-amount-currency" aria-hidden="true">¥</span>
+<input type="number" id="add-amount" class="form-control bill-amount-control" placeholder="0.00" step="0.01" aria-describedby="add-amount-error" aria-invalid="false">
+</div>
+<div class="bill-field-error" id="add-amount-error" aria-live="polite">请输入有效金额</div>
+</div>
+
+<!-- 分类选择：用网格展示图标按钮 -->
+<div class="form-group">
+<div class="form-label" id="bill-category-label">选择分类</div>
+<div class="category-grid" id="category-grid" role="group" aria-labelledby="bill-category-label"></div>
+</div>
+
+<!-- 备注（可选） -->
+<div class="form-group">
+<label class="form-label" for="add-note">备注</label>
+<textarea id="add-note" class="form-control" rows="2" placeholder="填写备注（可选）"></textarea>
+</div>
+
+<!-- 时间选择 -->
+<div class="form-group">
+<div class="form-label" id="add-date-label">时间</div>
+<button type="button" class="bill-time-trigger" id="add-date-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="bill-time-sheet" aria-describedby="add-date-error" aria-invalid="false">
+<span class="bill-time-trigger-value" id="add-date-display">请选择时间</span>
+<svg class="bill-time-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 18 6-6-6-6"></path>
+</svg>
+</button>
+<input type="datetime-local" id="add-date" class="bill-time-value-source" tabindex="-1" aria-hidden="true">
+<div class="bill-field-error" id="add-date-error" aria-live="polite">请选择时间</div>
+</div>
+</div>
+
+<!-- 保存按钮 -->
+<div class="bill-modal-footer">
+<div class="warning-text" id="overbudget-warning">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M10.3 3.7 2.5 17.2A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.8L13.7 3.7a2 2 0 0 0-3.4 0Z"></path>
+<path d="M12 9v4M12 17h.01"></path>
+</svg>
+<span>提醒：提交后当月支出将超出设置的预算！</span>
+</div>
+<button class="btn-primary" id="save-bill-btn">保存账单</button>
+</div>
+</div>
+</div>
+
+<!-- ===== 新增 / 编辑账单：选择时间 Bottom Sheet ===== -->
+<div class="bill-time-sheet-mask" id="bill-time-sheet" role="dialog" aria-modal="true" aria-labelledby="bill-time-sheet-title" aria-hidden="true">
+<div class="bill-time-sheet-panel">
+<div class="bill-time-sheet-header">
+<button type="button" class="bill-time-sheet-action bill-time-sheet-cancel" id="bill-time-cancel">取消</button>
+<h2 class="bill-time-sheet-title" id="bill-time-sheet-title">选择时间</h2>
+<button type="button" class="bill-time-sheet-action bill-time-sheet-confirm" id="bill-time-confirm">确定</button>
+</div>
+
+<div class="bill-time-sheet-field">
+<div class="form-label" id="bill-time-date-label">日期</div>
+<button type="button" class="bill-time-choice-button" id="bill-time-date-trigger">
+<span id="bill-time-date-display">请选择日期</span>
+<svg class="bill-time-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 18 6-6-6-6"></path>
+</svg>
+</button>
+<input type="date" id="bill-time-date-input" class="bill-time-native-source" tabindex="-1" aria-hidden="true">
+</div>
+
+<div class="bill-time-sheet-field">
+<div class="form-label" id="bill-time-clock-label">时间</div>
+<button type="button" class="bill-time-choice-button bill-time-clock" id="bill-time-clock-trigger">
+<span id="bill-time-clock-display">-- : --</span>
+<svg class="bill-time-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 18 6-6-6-6"></path>
+</svg>
+</button>
+<input type="time" id="bill-time-clock-input" class="bill-time-native-source" step="60" tabindex="-1" aria-hidden="true">
+</div>
+
+<button type="button" class="bill-time-now" id="bill-time-now">现在</button>
+</div>
+</div>
+
+<!-- ===== 记账表单未保存修改确认 ===== -->
+<div class="confirm-mask" id="discard-bill-changes-modal" role="dialog" aria-modal="true" aria-labelledby="discard-bill-changes-title" aria-describedby="discard-bill-changes-desc" aria-hidden="true">
+<div class="confirm-box">
+<div class="confirm-title" id="discard-bill-changes-title">放弃本次填写？</div>
+<div class="confirm-desc" id="discard-bill-changes-desc">当前填写的内容尚未保存。</div>
+<div class="confirm-btns">
+<button type="button" class="confirm-btn confirm-btn-cancel" id="continue-editing-bill">继续填写</button>
+<button type="button" class="confirm-btn confirm-btn-delete" id="discard-bill-changes">放弃填写</button>
+</div>
+</div>
+</div>
+
+<!-- ===== 第7关：长按账单后的操作菜单 ===== -->
+<div class="modal-mask bill-action-sheet" id="bill-action-sheet">
+<div class="action-sheet-content">
+<div class="sheet-handle action-sheet-handle" aria-hidden="true"></div>
+<div class="action-sheet-group">
+<button class="action-sheet-btn action-sheet-btn-edit" id="action-edit-bill">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M12 20h9"></path>
+<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path>
+</svg>
+<span>编辑账单</span>
+</button>
+<button class="action-sheet-btn action-sheet-btn-delete" id="action-delete-bill">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6"></path>
+</svg>
+<span>删除账单</span>
+</button>
+</div>
+<div class="action-sheet-group action-sheet-cancel">
+<button class="action-sheet-btn action-sheet-btn-cancel" id="action-cancel-bill">取消</button>
+</div>
+</div>
+</div>
+
+<!-- ===== 首页高级筛选 Bottom Sheet ===== -->
+<div class="home-filter-sheet-mask" id="home-filter-sheet" role="dialog" aria-modal="true" aria-labelledby="home-filter-sheet-title" aria-hidden="true">
+<div class="home-filter-sheet-panel">
+<div class="home-filter-sheet-header">
+<h2 class="home-filter-sheet-title" id="home-filter-sheet-title">筛选账单</h2>
+<button type="button" class="home-filter-clear" id="home-filter-clear" disabled>清除</button>
+</div>
+<div class="home-filter-sheet-body">
+<!-- 分类和时间筛选：继续复用现有 select 与 Option Sheet -->
+<div class="filter-select-row">
+<div class="filter-select-item">
+<label class="form-label" for="home-category-trigger">分类</label>
+<button type="button" class="option-sheet-trigger" id="home-category-trigger" data-option-select="home-category-filter" data-option-title="选择分类" aria-haspopup="dialog" aria-expanded="false">
+<span class="option-sheet-trigger-label">全部分类</span>
+<svg class="option-sheet-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"></path></svg>
+</button>
+<select id="home-category-filter" class="form-control option-sheet-native-select" tabindex="-1" aria-hidden="true">
+<option value="all">全部分类</option>
+</select>
+</div>
+<div class="filter-select-item">
+<label class="form-label" for="home-time-trigger">时间</label>
+<button type="button" class="option-sheet-trigger" id="home-time-trigger" data-option-select="home-time-filter" data-option-title="选择时间范围" aria-haspopup="dialog" aria-expanded="false">
+<span class="option-sheet-trigger-label">全部时间</span>
+<svg class="option-sheet-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"></path></svg>
+</button>
+<select id="home-time-filter" class="form-control option-sheet-native-select" tabindex="-1" aria-hidden="true">
+<option value="all">全部时间</option>
+<option value="today">今天</option>
+<option value="week">本周</option>
+<option value="month">本月</option>
+<option value="last-month">上月</option>
+<option value="custom">自定义</option>
+</select>
+</div>
+</div>
+
+<!-- 选择“自定义”后显示起止日期 -->
+<div class="custom-date-range" id="custom-date-range">
+<div class="filter-select-item">
+<label class="form-label" for="filter-start-date">开始日期</label>
+<input type="date" id="filter-start-date" class="form-control">
+</div>
+<div class="custom-date-separator">~</div>
+<div class="filter-select-item">
+<label class="form-label" for="filter-end-date">结束日期</label>
+<input type="date" id="filter-end-date" class="form-control">
+</div>
+</div>
+<div class="filter-date-error" id="filter-date-error" role="alert"></div>
+</div>
+<div class="home-filter-sheet-footer">
+<button type="button" class="btn-primary" id="home-filter-done">完成</button>
+</div>
+</div>
+</div>
+
+<!-- ===== 统一选项底部面板：分类、时间和类型共用 ===== -->
+<div class="option-sheet-mask" id="option-sheet" role="dialog" aria-modal="true" aria-labelledby="option-sheet-title" aria-hidden="true">
+<div class="option-sheet-panel">
+<div class="sheet-handle" aria-hidden="true"></div>
+<div class="option-sheet-header">
+<div class="option-sheet-title" id="option-sheet-title">请选择</div>
+</div>
+<div class="option-sheet-scroll">
+<div class="option-sheet-list" id="option-sheet-list" role="radiogroup"></div>
+</div>
+<div class="option-sheet-footer">
+<button type="button" class="option-sheet-cancel" id="option-sheet-cancel">取消</button>
+</div>
+</div>
+</div>
+
+<!-- ===== 预算设置弹窗 ===== -->
+<div class="modal-mask" id="budget-modal">
+<div class="modal-content">
+<div class="sheet-handle" aria-hidden="true"></div>
+<div class="sheet-title">设置预算</div>
+<div class="form-group">
+<label class="form-label">当月预算金额（元）</label>
+<input type="number" id="budget-input" class="form-control" placeholder="3000" step="0.01" min="0">
+</div>
+<button class="btn-primary" id="save-budget-btn">保存预算</button>
+</div>
+</div>
+
+<!-- ===== 删除确认弹窗（替换原生 confirm） ===== -->
+<div class="confirm-mask" id="confirm-modal">
+<div class="confirm-box">
+<div class="confirm-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6"></path>
+</svg>
+</div>
+<div class="confirm-title">删除账单</div>
+<div class="confirm-desc">删除后将无法恢复，确定删除吗？</div>
+<div class="confirm-bill-info" id="confirm-bill-info"></div>
+<div class="confirm-btns">
+<button class="confirm-btn confirm-btn-cancel" id="confirm-cancel-btn">取消</button>
+<button class="confirm-btn confirm-btn-delete" id="confirm-delete-btn">确认删除</button>
+</div>
+</div>
+</div>
+
+</div>
+<!-- ===== 第6关：本地加载 Chart.js，保证 WebView 离线可用 ===== -->
+<script src="chart.min.js"></script>
+
+<script>
+// ===== 第3关：数据存档（localStorage）=====
+
+// 第9关：分类图标统一使用轻量内联线性 SVG，只改变显示形式
+function createLineIcon(content) {
+return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + content + '</svg>';
+}
+
+var categoryIcons = {
+food: createLineIcon('<path d="M6 3v7M3 3v4a3 3 0 0 0 6 0V3M6 10v11M15 3v18M15 3c3 1 5 4 5 7h-5"></path>'),
+transport: createLineIcon('<path d="M5 17h14M6 17l-1-5 2-5h10l2 5-1 5M7 12h10M8 9h.01M16 9h.01M8 17v2M16 17v2"></path>'),
+shopping: createLineIcon('<path d="M6 8h12l1 13H5L6 8Z"></path><path d="M9 9V6a3 3 0 0 1 6 0v3"></path>'),
+game: createLineIcon('<path d="M8 7h8a5 5 0 0 1 4.8 6.4l-1 3.2a2 2 0 0 1-3.4.8L14 15h-4l-2.4 2.4a2 2 0 0 1-3.4-.8l-1-3.2A5 5 0 0 1 8 7Z"></path><path d="M7 11v4M5 13h4M16.5 11.5h.01M18.5 14.5h.01"></path>'),
+home: createLineIcon('<path d="m3 11 9-8 9 8"></path><path d="M5 10v11h14V10M9 21v-6h6v6"></path>'),
+medical: createLineIcon('<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6V3Z"></path>'),
+book: createLineIcon('<path d="M4 5a3 3 0 0 1 3-2h5v18H7a3 3 0 0 0-3 2V5Z"></path><path d="M20 5a3 3 0 0 0-3-2h-5v18h5a3 3 0 0 1 3 2V5Z"></path>'),
+more: createLineIcon('<circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle>'),
+wallet: createLineIcon('<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4V6Z"></path><path d="M4 8h16M15 13h5M16 13h.01"></path>'),
+trophy: createLineIcon('<path d="M8 4h8v5a4 4 0 0 1-8 0V4ZM10 17h4M12 13v4M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4M7 21h10"></path>'),
+briefcase: createLineIcon('<rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"></path>')
+};
+
+// ===== 第8关：支出分类配置 =====
+// 分类名称继续作为对象键，不改变账单中的 category 字段
+var expenseCategories = {
+'餐饮': { icon: categoryIcons.food, bg: '#FFF0E6', chartColor: '#F4B38F' },
+'交通': { icon: categoryIcons.transport, bg: '#E6F7FF', chartColor: '#8FCBE8' },
+'购物': { icon: categoryIcons.shopping, bg: '#FFF0F5', chartColor: '#ECA7C7' },
+'娱乐': { icon: categoryIcons.game, bg: '#F3E8FF', chartColor: '#C5A7E5' },
+'居住': { icon: categoryIcons.home, bg: '#EAF2FF', chartColor: '#83A7E3' },
+'医疗': { icon: categoryIcons.medical, bg: '#FFECEC', chartColor: '#EC9797' },
+'学习': { icon: categoryIcons.book, bg: '#FFF8E6', chartColor: '#DCB96C' },
+'其他': { icon: categoryIcons.more, bg: '#F0F2F1', chartColor: '#BFC7C4' }
+};
+
+// ===== 第8关：收入分类配置 =====
+var incomeCategories = {
+'工资': { icon: categoryIcons.wallet, bg: '#E6F7F0', chartColor: '#72D6B0' },
+'奖金': { icon: categoryIcons.trophy, bg: '#FFF7DF', chartColor: '#F2C14E' },
+'兼职': { icon: categoryIcons.briefcase, bg: '#EAF0FF', chartColor: '#8EA9E8' },
+'其他': { icon: categoryIcons.more, bg: '#F0F2F1', chartColor: '#C4C9C7' }
+};
+
+// 历史分类只用于显示旧账单，不出现在新建和筛选选项中
+var legacyCategoryConfigs = {
+'水果': { icon: '🥭', bg: '#FFFBE6', chartColor: '#FFE57F' }
+};
+
+// 按账单类型读取分类；找不到时使用统一的兜底样式
+function getCategoryConfig(category, type) {
+var typeConfigs = type === 'income' ? incomeCategories : expenseCategories;
+return typeConfigs[category] || expenseCategories[category] || incomeCategories[category] ||
+legacyCategoryConfigs[category] || { icon: '📝', bg: '#F0F2F1', chartColor: '#C4C9C7' };
+}
+
+// 首页“全部”类型需要合并两套分类，并去掉重复的“其他”
+function getCategoryNamesByType(type) {
+if (type === 'expense') return Object.keys(expenseCategories);
+if (type === 'income') return Object.keys(incomeCategories);
+
+var names = Object.keys(expenseCategories);
+Object.keys(incomeCategories).forEach(function(name) {
+if (names.indexOf(name) === -1) names.push(name);
+});
+return names;
+}
+
+// 工具函数：把日期对象转成 "2026-08" 格式字符串
+function getYearMonthStr(d) {
+return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+// 工具函数：按本地时间生成 "2026-08-19"，避免 UTC 时区造成日期偏移
+function getLocalDateStr(d) {
+return d.getFullYear() + '-' +
+String(d.getMonth() + 1).padStart(2, '0') + '-' +
+String(d.getDate()).padStart(2, '0');
+}
+
+// === 核心三招之「取」：从 localStorage 读取所有账单 ===
+function getBills() {
+var raw = localStorage.getItem('bills');  // 取出字符串
+if (!raw) return [];                       // 没有数据就返回空数组
+try {
+return JSON.parse(raw);                  // 字符串 → 数组
+} catch (e) {
+return [];                               // 解析失败也返回空数组
+}
+}
+
+// === 核心三招之「存」：把账单数组存进 localStorage ===
+function saveBills(bills) {
+localStorage.setItem('bills', JSON.stringify(bills));  // 数组 → 字符串 → 存储
+}
+
+// === 核心三招之「加」：新增一条账单并保存 ===
+function addBill(bill) {
+var bills = getBills();     // 先取出现有数据
+bills.push(bill);           // 往数组末尾加一条
+saveBills(bills);           // 存回去
+}
+
+// ===== 第8关：账单搜索与筛选状态（仅保存在当前页面内存中） =====
+var homeSearchKeyword = '';
+var homeFilterType = 'all';
+var homeFilterCategory = 'all';
+var homeFilterTime = 'all';
+var homeCustomStartDate = '';
+var homeCustomEndDate = '';
+
+// 首页筛选按钮只汇总收纳在 Bottom Sheet 中的条件；搜索词和收支类型已直接可见
+function getHomeAdvancedFilterCount() {
+var count = 0;
+if (homeFilterCategory !== 'all') count += 1;
+if (homeFilterTime !== 'all') count += 1;
+return count;
+}
+
+function updateHomeFilterControls() {
+var count = getHomeAdvancedFilterCount();
+var trigger = document.getElementById('home-filter-trigger');
+var label = document.getElementById('home-filter-button-label');
+var clearButton = document.getElementById('home-filter-clear');
+var customRange = document.getElementById('custom-date-range');
+
+label.innerText = count ? '筛选 · ' + count : '筛选';
+trigger.classList.toggle('is-active', count > 0);
+trigger.setAttribute('aria-label', count ? '筛选，已启用' + count + '项条件' : '筛选');
+clearButton.disabled = count === 0;
+customRange.classList.toggle('active', homeFilterTime === 'custom');
+}
+
+function openHomeFilterSheet() {
+var sheet = document.getElementById('home-filter-sheet');
+var trigger = document.getElementById('home-filter-trigger');
+if (sheet.classList.contains('active')) return;
+
+sheet.classList.add('active');
+sheet.setAttribute('aria-hidden', 'false');
+trigger.setAttribute('aria-expanded', 'true');
+document.body.classList.add('home-filter-sheet-open');
+
+setTimeout(function() {
+if (sheet.classList.contains('active')) document.getElementById('home-category-trigger').focus();
+}, 220);
+}
+
+function closeHomeFilterSheet() {
+var sheet = document.getElementById('home-filter-sheet');
+var trigger = document.getElementById('home-filter-trigger');
+sheet.classList.remove('active');
+sheet.setAttribute('aria-hidden', 'true');
+trigger.setAttribute('aria-expanded', 'false');
+document.body.classList.remove('home-filter-sheet-open');
+trigger.focus();
+}
+
+function completeHomeFilterSheet() {
+var range = getHomeTimeRange();
+if (!range.valid) {
+renderHomeOverview();
+var startInput = document.getElementById('filter-start-date');
+var endInput = document.getElementById('filter-end-date');
+if (!homeCustomStartDate) startInput.focus();
+else if (!homeCustomEndDate) endInput.focus();
+else startInput.focus();
+return;
+}
+closeHomeFilterSheet();
+}
+
+function clearHomeAdvancedFilters() {
+homeFilterCategory = 'all';
+homeFilterTime = 'all';
+homeCustomStartDate = '';
+homeCustomEndDate = '';
+
+updateHomeCategoryFilter();
+var categorySelect = document.getElementById('home-category-filter');
+var timeSelect = document.getElementById('home-time-filter');
+timeSelect.value = 'all';
+document.getElementById('filter-start-date').value = '';
+document.getElementById('filter-end-date').value = '';
+document.getElementById('filter-date-error').style.display = 'none';
+document.getElementById('filter-date-error').innerText = '';
+syncOptionTrigger(categorySelect);
+syncOptionTrigger(timeSelect);
+updateHomeFilterControls();
+renderHomeOverview();
+}
+
+// 只要有一个条件不是默认值，就进入“搜索或筛选状态”
+function isHomeFilterActive() {
+return homeSearchKeyword.trim() !== '' ||
+homeFilterType !== 'all' ||
+homeFilterCategory !== 'all' ||
+homeFilterTime !== 'all';
+}
+
+// 根据时间筛选生成包含首尾当天的日期范围
+function getHomeTimeRange() {
+if (homeFilterTime === 'all') return { valid: true, start: '', end: '' };
+
+if (homeFilterTime === 'custom') {
+if (!homeCustomStartDate || !homeCustomEndDate) {
+return { valid: false, message: '请选择完整的开始日期和结束日期' };
+}
+if (homeCustomStartDate > homeCustomEndDate) {
+return { valid: false, message: '开始日期不能晚于结束日期' };
+}
+return { valid: true, start: homeCustomStartDate, end: homeCustomEndDate };
+}
+
+var today = new Date();
+today.setHours(0, 0, 0, 0);
+var start = new Date(today);
+var end = new Date(today);
+
+if (homeFilterTime === 'week') {
+// 国内常用自然周：周一到周日
+var day = today.getDay();
+var daysFromMonday = day === 0 ? 6 : day - 1;
+start.setDate(today.getDate() - daysFromMonday);
+end.setDate(start.getDate() + 6);
+} else if (homeFilterTime === 'month') {
+start = new Date(today.getFullYear(), today.getMonth(), 1);
+end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+} else if (homeFilterTime === 'last-month') {
+start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+end = new Date(today.getFullYear(), today.getMonth(), 0);
+}
+
+return { valid: true, start: getLocalDateStr(start), end: getLocalDateStr(end) };
+}
+
+// 从现有 date 字段取出日期部分，不新增任何时间字段
+function getBillDatePart(bill) {
+return bill && typeof bill.date === 'string' && bill.date.length >= 10 ? bill.date.slice(0, 10) : '';
+}
+
+// 首页日期仅做友好显示，不修改账单原始日期或筛选判断
+function formatHomeBillDate(dateValue) {
+var raw = String(dateValue || '');
+var match = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?/);
+if (!match) return raw;
+
+var year = parseInt(match[1], 10);
+var month = parseInt(match[2], 10);
+var day = parseInt(match[3], 10);
+var parsed = new Date(year, month - 1, day);
+if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
+return raw;
+}
+
+var datePart = match[1] + '-' + match[2] + '-' + match[3];
+var timeText = match[4] && match[5] ? ' ' + match[4] + ':' + match[5] : '';
+var now = new Date();
+var yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+
+if (datePart === getLocalDateStr(now)) return '今天' + timeText;
+if (datePart === getLocalDateStr(yesterday)) return '昨天' + timeText;
+if (year === now.getFullYear()) return match[2] + '月' + match[3] + '日' + timeText;
+return match[1] + '年' + match[2] + '月' + match[3] + '日' + timeText;
+}
+
+// 根据当前条件生成首页账单列表
+function renderHomeBillList(bills) {
+var listEl = document.getElementById('home-bill-list');
+var titleEl = document.getElementById('home-list-title');
+var errorEl = document.getElementById('filter-date-error');
+var active = isHomeFilterActive();
+var result = bills.filter(function(bill) { return !!bill; });
+
+errorEl.style.display = 'none';
+errorEl.innerText = '';
+
+if (!active) {
+titleEl.innerText = '账单记录';
+result = result.slice().sort(function(a, b) {
+return new Date(b.date) - new Date(a.date);
+});
+} else {
+// 1. 类型过滤
+if (homeFilterType !== 'all') {
+result = result.filter(function(bill) { return bill.type === homeFilterType; });
+}
+
+// 2. 分类过滤
+if (homeFilterCategory !== 'all') {
+result = result.filter(function(bill) { return bill.category === homeFilterCategory; });
+}
+
+// 3. 时间过滤
+var range = getHomeTimeRange();
+if (!range.valid) {
+errorEl.innerText = range.message;
+errorEl.style.display = 'block';
+result = [];
+} else if (homeFilterTime !== 'all') {
+result = result.filter(function(bill) {
+var billDate = getBillDatePart(bill);
+return billDate && billDate >= range.start && billDate <= range.end;
+});
+}
+
+// 4. 关键词搜索：分类、备注包含关键词；金额必须精确相等
+var keyword = homeSearchKeyword.trim().toLowerCase();
+if (keyword && range.valid) {
+var numericKeyword = /^[-+]?(?:\d+\.?\d*|\.\d+)$/.test(keyword);
+var searchAmount = numericKeyword ? parseFloat(keyword) : NaN;
+result = result.filter(function(bill) {
+var categoryMatched = String(bill.category || '').toLowerCase().indexOf(keyword) !== -1;
+var noteMatched = String(bill.note || '').toLowerCase().indexOf(keyword) !== -1;
+var billAmount = parseFloat(bill.amount);
+var amountMatched = numericKeyword && !isNaN(billAmount) && Math.abs(billAmount - searchAmount) < 0.0000001;
+return categoryMatched || noteMatched || amountMatched;
+});
+}
+
+result.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+titleEl.innerText = '找到' + result.length + '条账单';
+}
+
+if (!result.length) {
+listEl.innerHTML = active ?
+'<div class="empty-search-state">' +
+'<div class="empty-search-title">没有找到相关账单</div>' +
+'<div class="empty-search-desc">尝试搜索其他关键词</div>' +
+'</div>' :
+'<div class="empty-text">暂无账单记录</div>';
+return;
+}
+
+listEl.innerHTML = result.map(function(bill) {
+var config = getCategoryConfig(bill.category, bill.type);
+var noteText = bill.note == null ? '' : String(bill.note).trim();
+var amountValue = parseFloat(bill.amount);
+var amountText = (bill.type === 'income' ? '+' : '-') + '￥' + amountValue.toFixed(2);
+var manageLabel = '管理 ' + bill.category + ' ' +
+(bill.type === 'income' ? '收入 ' : '支出 ') + amountValue.toFixed(2) + '元账单';
+return '<div class="bill-item" data-bill-id="' + bill.id + '">' +
+'<div class="bill-left">' +
+'<div class="bill-icon" style="background:' + config.bg + '">' + config.icon + '</div>' +
+'<div class="bill-copy">' +
+'<div class="bill-title">' + bill.category + '</div>' +
+'<div class="bill-meta">' +
+'<div class="bill-date">' + formatHomeBillDate(bill.date) + '</div>' +
+(noteText ? '<span class="bill-meta-separator">·</span><div class="bill-note">' + noteText + '</div>' : '') +
+'</div>' +
+'</div>' +
+'</div>' +
+'<div class="bill-trailing">' +
+'<div class="bill-amount ' + (bill.type === 'income' ? 'amount-income' : 'amount-expense') + '">' +
+amountText +
+'</div>' +
+'<button type="button" class="bill-more-button" data-bill-id="' + bill.id + '" ' +
+'aria-label="' + manageLabel + '" aria-haspopup="dialog" aria-controls="bill-action-sheet">' +
+'<span aria-hidden="true">⋮</span>' +
+'</button>' +
+'</div>' +
+'</div>';
+}).join('');
+
+// 首页同时提供可见的更多按钮和原有长按管理入口
+bindHomeBillMoreButtons();
+bindBillLongPressEvents();
+}
+
+// === 渲染首页概览（收入/支出汇总 + 账单管理列表）===
+function renderHomeOverview() {
+var ym = getYearMonthStr(new Date());  // 本月，如 "2026-08"
+var bills = getBills();
+// 筛出本月的账单
+var monthBills = bills.filter(function(b) {
+return b && b.date && typeof b.date === 'string' && b.date.startsWith(ym);
+});
+
+// 分别累加收入和支出
+var income = 0, expense = 0;
+monthBills.forEach(function(b) {
+var amount = parseFloat(b.amount) || 0;
+if (b.type === 'income') income += amount;
+else expense += amount;
+});
+
+// 更新页面上的数字
+document.getElementById('home-income').innerText = '+￥' + income.toFixed(2);
+document.getElementById('home-expense').innerText = '-￥' + expense.toFixed(2);
+
+renderHomeBillList(bills);
+}
+
+// 动态生成分类筛选选项；切换类型后无效的旧分类自动回到“全部分类”
+function updateHomeCategoryFilter() {
+var select = document.getElementById('home-category-filter');
+var names = getCategoryNamesByType(homeFilterType);
+if (homeFilterCategory !== 'all' && names.indexOf(homeFilterCategory) === -1) {
+homeFilterCategory = 'all';
+}
+
+select.innerHTML = '<option value="all">全部分类</option>' + names.map(function(name) {
+return '<option value="' + name + '">' + name + '</option>';
+}).join('');
+select.value = homeFilterCategory;
+updateHomeFilterControls();
+}
+
+// 搜索输入变化后立即刷新结果
+document.getElementById('home-search-input').addEventListener('input', function() {
+homeSearchKeyword = this.value;
+renderHomeOverview();
+});
+
+// 首页类型筛选
+document.querySelectorAll('#home-type-filter .filter-tab').forEach(function(tab) {
+tab.addEventListener('click', function() {
+document.querySelectorAll('#home-type-filter .filter-tab').forEach(function(item) {
+item.classList.remove('active');
+item.setAttribute('aria-pressed', 'false');
+});
+this.classList.add('active');
+this.setAttribute('aria-pressed', 'true');
+homeFilterType = this.getAttribute('data-filter');
+updateHomeCategoryFilter();
+renderHomeOverview();
+});
+});
+
+document.getElementById('home-category-filter').addEventListener('change', function() {
+homeFilterCategory = this.value;
+updateHomeFilterControls();
+renderHomeOverview();
+});
+
+document.getElementById('home-time-filter').addEventListener('change', function() {
+homeFilterTime = this.value;
+updateHomeFilterControls();
+renderHomeOverview();
+});
+
+document.getElementById('filter-start-date').addEventListener('change', function() {
+homeCustomStartDate = this.value;
+updateHomeFilterControls();
+renderHomeOverview();
+});
+document.getElementById('filter-end-date').addEventListener('change', function() {
+homeCustomEndDate = this.value;
+updateHomeFilterControls();
+renderHomeOverview();
+});
+
+document.getElementById('home-filter-trigger').addEventListener('click', openHomeFilterSheet);
+document.getElementById('home-filter-done').addEventListener('click', completeHomeFilterSheet);
+document.getElementById('home-filter-clear').addEventListener('click', clearHomeAdvancedFilters);
+document.getElementById('home-filter-sheet').addEventListener('click', function(e) {
+if (e.target === this) completeHomeFilterSheet();
+});
+document.addEventListener('keydown', function(e) {
+var sheet = document.getElementById('home-filter-sheet');
+var sharedOptionSheet = document.getElementById('option-sheet');
+if (e.key === 'Escape' && sheet.classList.contains('active') && !sharedOptionSheet.classList.contains('active')) {
+e.preventDefault();
+completeHomeFilterSheet();
+}
+});
+
+// ===== 以下是第1关的导航和弹窗逻辑 =====
+
+// 当前选中的分类（默认"餐饮"）
+var selectedCategory = '餐饮';
+
+// ===== 第7关：新增模式 / 编辑模式的状态 =====
+// null 表示新增；保存着账单 id 时表示正在编辑这条账单
+var editingBillId = null;
+// 保存当前长按选中的账单 id，供操作菜单使用
+var selectedBillId = null;
+
+// 第8关：根据当前收支类型生成分类网格
+function buildCategoryGrid() {
+var grid = document.getElementById('category-grid');
+var type = document.getElementById('add-type').value;
+var categoryNames = getCategoryNamesByType(type);
+
+// 编辑历史分类时临时保留原分类，除非用户主动选择新分类
+if (editingBillId !== null && selectedCategory && categoryNames.indexOf(selectedCategory) === -1) {
+categoryNames.unshift(selectedCategory);
+}
+
+grid.innerHTML = categoryNames.map(function(cat) {
+var c = getCategoryConfig(cat, type);
+return '<button type="button" class="category-card ' + (cat === selectedCategory ? 'selected' : '') + '" ' +
+'style="background:' + c.bg + '" aria-pressed="' + (cat === selectedCategory ? 'true' : 'false') + '" ' +
+'onclick="selectCategory(\'' + cat + '\', event)">' +
+'<div class="category-card-icon">' + c.icon + '</div>' +
+'<div class="category-card-name">' + cat + '</div>' +
+'</button>';
+}).join('');
+}
+
+// 点击分类按钮时切换选中状态
+window.selectCategory = function(cat, interactionEvent) {
+var restoreKeyboardFocus = interactionEvent && interactionEvent.detail === 0;
+selectedCategory = cat;
+buildCategoryGrid();  // 重新渲染，高亮新选中的
+if (restoreKeyboardFocus) {
+var selectedButton = document.querySelector('#category-grid .category-card[aria-pressed="true"]');
+if (selectedButton) selectedButton.focus();
+}
+};
+
+var modal = document.getElementById('add-modal');
+var billModalTitle = document.getElementById('bill-modal-title');
+var saveBillButton = document.getElementById('save-bill-btn');
+var cancelBillModalButton = document.getElementById('cancel-bill-modal');
+var openAddModalButton = document.getElementById('open-add-modal');
+var billModalScroll = document.getElementById('bill-modal-scroll');
+var addAmountInput = document.getElementById('add-amount');
+var addAmountField = document.querySelector('#add-modal .bill-amount-field');
+var addAmountError = document.getElementById('add-amount-error');
+var addDateInput = document.getElementById('add-date');
+var addDateTrigger = document.getElementById('add-date-trigger');
+var addDateDisplay = document.getElementById('add-date-display');
+var addDateError = document.getElementById('add-date-error');
+var addTypeSelect = document.getElementById('add-type');
+var billTypeButtons = document.querySelectorAll('#add-modal .bill-type-option');
+var billTimeSheet = document.getElementById('bill-time-sheet');
+var billTimeCancelButton = document.getElementById('bill-time-cancel');
+var billTimeConfirmButton = document.getElementById('bill-time-confirm');
+var billTimeDateTrigger = document.getElementById('bill-time-date-trigger');
+var billTimeDateDisplay = document.getElementById('bill-time-date-display');
+var billTimeDateInput = document.getElementById('bill-time-date-input');
+var billTimeClockTrigger = document.getElementById('bill-time-clock-trigger');
+var billTimeClockDisplay = document.getElementById('bill-time-clock-display');
+var billTimeClockInput = document.getElementById('bill-time-clock-input');
+var billTimeNowButton = document.getElementById('bill-time-now');
+var discardBillChangesModal = document.getElementById('discard-bill-changes-modal');
+var discardBillChangesTitle = document.getElementById('discard-bill-changes-title');
+var discardBillChangesDesc = document.getElementById('discard-bill-changes-desc');
+var continueEditingBillButton = document.getElementById('continue-editing-bill');
+var discardBillChangesButton = document.getElementById('discard-bill-changes');
+var billModalInitialState = null;
+var billModalReturnFocus = null;
+var billModalViewportFrame = null;
+var billModalFocusSelector = '#add-amount, #add-note, #add-date-trigger';
+
+function setBillFieldError(input, visualField, errorElement, message) {
+visualField.classList.add('is-invalid');
+input.setAttribute('aria-invalid', 'true');
+errorElement.innerText = message;
+errorElement.classList.add('visible');
+}
+
+function clearBillFieldError(input, visualField, errorElement) {
+visualField.classList.remove('is-invalid');
+input.setAttribute('aria-invalid', 'false');
+errorElement.classList.remove('visible');
+}
+
+function clearBillFormErrors() {
+clearBillFieldError(addAmountInput, addAmountField, addAmountError);
+clearBillFieldError(addDateTrigger, addDateTrigger, addDateError);
+}
+
+function focusInvalidBillField(input) {
+try {
+input.focus({ preventScroll: true });
+} catch (error) {
+input.focus();
+}
+setTimeout(function() {
+keepBillModalFieldVisible(input, 'smooth');
+}, 0);
+}
+
+addAmountInput.addEventListener('input', function() {
+var amount = parseFloat(addAmountInput.value);
+if (amount && amount > 0) {
+clearBillFieldError(addAmountInput, addAmountField, addAmountError);
+}
+});
+
+function clearDateErrorWhenValid() {
+if (addDateInput.value) {
+clearBillFieldError(addDateTrigger, addDateTrigger, addDateError);
+}
+}
+
+function getCurrentLocalDateTimeValue() {
+var now = new Date();
+now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+return now.toISOString().slice(0, 16);
+}
+
+function getBillTimeParts(value) {
+var normalized = String(value || '').replace(' ', 'T');
+var match = normalized.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+if (match) return { date: match[1], time: match[2] };
+var current = getCurrentLocalDateTimeValue();
+return { date: current.slice(0, 10), time: current.slice(11, 16) };
+}
+
+function formatBillTimePickerDate(value) {
+var match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+if (!match) return '请选择日期';
+return match[1] + '年' + parseInt(match[2], 10) + '月' + parseInt(match[3], 10) + '日';
+}
+
+function syncBillTimeTrigger() {
+var displayText = addDateInput.value ? formatHomeBillDate(addDateInput.value) : '请选择时间';
+addDateDisplay.innerText = displayText;
+addDateTrigger.setAttribute('aria-label', addDateInput.value
+? '当前时间 ' + displayText + '，点击选择时间'
+: '尚未选择时间，点击选择时间');
+}
+
+function syncBillTimePickerDraft() {
+var dateText = formatBillTimePickerDate(billTimeDateInput.value);
+var timeText = billTimeClockInput.value || '--:--';
+billTimeDateDisplay.innerText = dateText;
+billTimeClockDisplay.innerText = timeText === '--:--' ? '-- : --' : timeText.replace(':', ' : ');
+billTimeDateTrigger.setAttribute('aria-label', '选择日期，当前' + dateText);
+billTimeClockTrigger.setAttribute('aria-label', '选择时间，当前' + timeText);
+billTimeConfirmButton.disabled = !billTimeDateInput.value || !billTimeClockInput.value;
+}
+
+function setBillTimePickerDraft(value) {
+var parts = getBillTimeParts(value);
+billTimeDateInput.value = parts.date;
+billTimeClockInput.value = parts.time;
+syncBillTimePickerDraft();
+}
+
+function openNativeBillTimePicker(input) {
+try {
+if (typeof input.showPicker === 'function') {
+input.showPicker();
+return;
+}
+} catch (error) {
+// 旧版 WebView 继续使用下面的原生输入回退。
+}
+input.focus();
+input.click();
+}
+
+function openBillTimePicker() {
+setBillTimePickerDraft(addDateInput.value);
+billTimeSheet.classList.add('active');
+billTimeSheet.setAttribute('aria-hidden', 'false');
+addDateTrigger.setAttribute('aria-expanded', 'true');
+setTimeout(function() {
+if (billTimeSheet.classList.contains('active')) billTimeCancelButton.focus();
+}, 0);
+}
+
+function closeBillTimePicker(restoreFocus) {
+var shouldRestoreFocus = restoreFocus !== false;
+billTimeSheet.classList.remove('active');
+billTimeSheet.setAttribute('aria-hidden', 'true');
+addDateTrigger.setAttribute('aria-expanded', 'false');
+if (shouldRestoreFocus) {
+setTimeout(function() {
+if (modal.classList.contains('active')) addDateTrigger.focus();
+}, 0);
+}
+}
+
+function confirmBillTimePicker() {
+if (!billTimeDateInput.value || !billTimeClockInput.value) return;
+var nextValue = billTimeDateInput.value + 'T' + billTimeClockInput.value;
+var valueChanged = addDateInput.value !== nextValue;
+addDateInput.value = nextValue;
+syncBillTimeTrigger();
+clearDateErrorWhenValid();
+if (valueChanged) {
+addDateInput.dispatchEvent(new Event('input', { bubbles: true }));
+addDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+}
+closeBillTimePicker();
+}
+
+addDateTrigger.addEventListener('click', openBillTimePicker);
+billTimeCancelButton.addEventListener('click', function() {
+closeBillTimePicker();
+});
+billTimeSheet.addEventListener('click', function(event) {
+if (event.target === billTimeSheet) closeBillTimePicker();
+});
+billTimeDateTrigger.addEventListener('click', function() {
+openNativeBillTimePicker(billTimeDateInput);
+});
+billTimeClockTrigger.addEventListener('click', function() {
+openNativeBillTimePicker(billTimeClockInput);
+});
+billTimeDateInput.addEventListener('input', syncBillTimePickerDraft);
+billTimeDateInput.addEventListener('change', syncBillTimePickerDraft);
+billTimeClockInput.addEventListener('input', syncBillTimePickerDraft);
+billTimeClockInput.addEventListener('change', syncBillTimePickerDraft);
+billTimeNowButton.addEventListener('click', function() {
+setBillTimePickerDraft(getCurrentLocalDateTimeValue());
+});
+billTimeConfirmButton.addEventListener('click', confirmBillTimePicker);
+
+addDateInput.addEventListener('input', function() {
+syncBillTimeTrigger();
+clearDateErrorWhenValid();
+});
+addDateInput.addEventListener('change', function() {
+syncBillTimeTrigger();
+clearDateErrorWhenValid();
+});
+
+function keepBillModalFieldVisible(field, behavior) {
+if (!field || !modal.classList.contains('active') || !billModalScroll.contains(field)) return;
+var scrollRect = billModalScroll.getBoundingClientRect();
+var fieldGroup = field.closest('.form-group') || field;
+var fieldRect = fieldGroup.getBoundingClientRect();
+var edgeGap = 12;
+var scrollDelta = 0;
+
+if (fieldRect.top < scrollRect.top + edgeGap) {
+scrollDelta = fieldRect.top - scrollRect.top - edgeGap;
+} else if (fieldRect.bottom > scrollRect.bottom - edgeGap) {
+scrollDelta = fieldRect.bottom - scrollRect.bottom + edgeGap;
+}
+
+if (Math.abs(scrollDelta) > 1) {
+billModalScroll.scrollBy({ top: scrollDelta, behavior: behavior || 'smooth' });
+}
+}
+
+function syncBillModalViewport() {
+if (billModalViewportFrame !== null) cancelAnimationFrame(billModalViewportFrame);
+billModalViewportFrame = requestAnimationFrame(function() {
+billModalViewportFrame = null;
+var viewport = window.visualViewport;
+
+if (viewport) {
+var viewportHeight = Math.max(1, Math.round(viewport.height));
+modal.style.setProperty('--bill-modal-viewport-height', viewportHeight + 'px');
+modal.style.setProperty('--bill-modal-viewport-top', Math.round(viewport.offsetTop) + 'px');
+modal.style.setProperty('--bill-modal-max-height', 'calc(' + Math.floor(viewportHeight * 0.92) + 'px - env(safe-area-inset-top))');
+}
+
+var activeField = document.activeElement;
+if (activeField && activeField.matches && activeField.matches(billModalFocusSelector)) {
+keepBillModalFieldVisible(activeField, 'auto');
+}
+});
+}
+
+modal.addEventListener('focusin', function(event) {
+if (!event.target.matches(billModalFocusSelector)) return;
+setTimeout(function() {
+keepBillModalFieldVisible(event.target, 'smooth');
+}, 120);
+});
+
+window.addEventListener('resize', syncBillModalViewport);
+if (window.visualViewport) {
+window.visualViewport.addEventListener('resize', syncBillModalViewport);
+window.visualViewport.addEventListener('scroll', syncBillModalViewport);
+}
+syncBillModalViewport();
+
+function syncBillTypeToggle() {
+billTypeButtons.forEach(function(button) {
+var isSelected = button.getAttribute('data-bill-type') === addTypeSelect.value;
+button.classList.toggle('selected', isSelected);
+button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+});
+}
+
+billTypeButtons.forEach(function(button) {
+button.addEventListener('click', function() {
+var nextType = this.getAttribute('data-bill-type');
+if (addTypeSelect.value === nextType) {
+syncBillTypeToggle();
+return;
+}
+addTypeSelect.value = nextType;
+addTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+});
+});
+addTypeSelect.addEventListener('change', syncBillTypeToggle);
+
+function getBillModalFormState() {
+return {
+type: document.getElementById('add-type').value,
+category: selectedCategory,
+amount: document.getElementById('add-amount').value,
+note: document.getElementById('add-note').value,
+date: document.getElementById('add-date').value
+};
+}
+
+function captureBillModalInitialState() {
+billModalInitialState = getBillModalFormState();
+}
+
+function isBillModalDirty() {
+if (!billModalInitialState) return false;
+var currentState = getBillModalFormState();
+return currentState.type !== billModalInitialState.type ||
+currentState.category !== billModalInitialState.category ||
+currentState.amount !== billModalInitialState.amount ||
+currentState.note !== billModalInitialState.note ||
+currentState.date !== billModalInitialState.date;
+}
+
+function closeDiscardBillChangesModal() {
+discardBillChangesModal.classList.remove('active');
+discardBillChangesModal.setAttribute('aria-hidden', 'true');
+}
+
+function openDiscardBillChangesModal() {
+var isEditingBill = editingBillId !== null;
+discardBillChangesTitle.innerText = isEditingBill ? '放弃本次修改？' : '放弃本次填写？';
+discardBillChangesDesc.innerText = isEditingBill ? '当前修改的内容尚未保存。' : '当前填写的内容尚未保存。';
+continueEditingBillButton.innerText = isEditingBill ? '继续编辑' : '继续填写';
+discardBillChangesButton.innerText = isEditingBill ? '放弃修改' : '放弃填写';
+discardBillChangesModal.classList.add('active');
+discardBillChangesModal.setAttribute('aria-hidden', 'false');
+setTimeout(function() {
+if (discardBillChangesModal.classList.contains('active')) continueEditingBillButton.focus();
+}, 0);
+}
+
+function restoreBillModalInitialState() {
+if (!billModalInitialState) return;
+document.getElementById('add-type').value = billModalInitialState.type;
+syncBillTypeToggle();
+selectedCategory = billModalInitialState.category;
+document.getElementById('add-amount').value = billModalInitialState.amount;
+document.getElementById('add-note').value = billModalInitialState.note;
+document.getElementById('add-date').value = billModalInitialState.date;
+syncBillTimeTrigger();
+buildCategoryGrid();
+syncOptionTrigger(document.getElementById('add-type'));
+}
+
+function focusBillModalStart() {
+setTimeout(function() {
+if (!modal.classList.contains('active')) return;
+try {
+cancelBillModalButton.focus({ preventScroll: true });
+} catch (error) {
+cancelBillModalButton.focus();
+}
+}, 0);
+}
+
+function restoreBillModalFocus(target) {
+setTimeout(function() {
+if (modal.classList.contains('active')) return;
+var targetIsAvailable = target
+&& target.isConnected
+&& !target.disabled
+&& target.getClientRects().length > 0;
+var focusTarget = targetIsAvailable ? target : openAddModalButton;
+if (focusTarget && typeof focusTarget.focus === 'function') focusTarget.focus();
+}, 0);
+}
+
+// 第7关：关闭记账弹窗时退出编辑模式，防止下次新增误改旧账单
+function closeBillModal() {
+var returnFocus = billModalReturnFocus;
+billModalReturnFocus = null;
+closeBillTimePicker(false);
+modal.classList.remove('active');
+closeDiscardBillChangesModal();
+clearBillFormErrors();
+billModalInitialState = null;
+editingBillId = null;
+billModalTitle.innerText = '记一笔';
+saveBillButton.innerText = '保存账单';
+document.getElementById('overbudget-warning').style.display = 'none';
+restoreBillModalFocus(returnFocus);
+}
+
+function requestCloseBillModal() {
+if (isBillModalDirty()) {
+openDiscardBillChangesModal();
+return;
+}
+closeBillModal();
+}
+
+document.getElementById('open-add-modal').addEventListener('click', function() {
+// 第7关：点击“+”必须明确进入新增模式
+billModalReturnFocus = openAddModalButton;
+editingBillId = null;
+billModalTitle.innerText = '记一笔';
+saveBillButton.innerText = '保存账单';
+// 打开弹窗时：自动填入当前时间
+document.getElementById('add-date').value = getCurrentLocalDateTimeValue();
+syncBillTimeTrigger();
+// 第8关：确保当前分类属于所选收支类型，再生成分类网格
+var addType = document.getElementById('add-type').value;
+var availableCategories = getCategoryNamesByType(addType);
+if (availableCategories.indexOf(selectedCategory) === -1) selectedCategory = availableCategories[0];
+syncBillTypeToggle();
+buildCategoryGrid();
+// 清空之前的输入
+document.getElementById('add-amount').value = '';
+document.getElementById('add-note').value = '';
+clearBillFormErrors();
+captureBillModalInitialState();
+modal.classList.add('active');
+focusBillModalStart();
+checkOverbudgetWarning();  // 打开时检查一次
+});
+cancelBillModalButton.addEventListener('click', requestCloseBillModal);
+modal.addEventListener('click', function(e) {
+if (e.target === modal) requestCloseBillModal();
+});
+continueEditingBillButton.addEventListener('click', function() {
+closeDiscardBillChangesModal();
+cancelBillModalButton.focus();
+});
+discardBillChangesButton.addEventListener('click', function() {
+restoreBillModalInitialState();
+closeBillModal();
+});
+discardBillChangesModal.addEventListener('click', function(e) {
+if (e.target === discardBillChangesModal) {
+closeDiscardBillChangesModal();
+cancelBillModalButton.focus();
+}
+});
+
+// ===== 第4关核心 + 第7关修改：保存新增或编辑后的账单 =====
+document.getElementById('save-bill-btn').addEventListener('click', function() {
+// 1. 收集表单数据
+var type = document.getElementById('add-type').value;
+var amount = parseFloat(document.getElementById('add-amount').value);
+var note = document.getElementById('add-note').value.trim();
+var dateVal = document.getElementById('add-date').value;
+
+// 2. 校验：金额和时间为必填
+var amountIsInvalid = !amount || amount <= 0;
+var dateIsInvalid = !dateVal;
+
+if (amountIsInvalid) {
+setBillFieldError(addAmountInput, addAmountField, addAmountError, '请输入有效金额');
+} else {
+clearBillFieldError(addAmountInput, addAmountField, addAmountError);
+}
+
+if (dateIsInvalid) {
+setBillFieldError(addDateTrigger, addDateTrigger, addDateError, '请选择时间');
+} else {
+clearBillFieldError(addDateTrigger, addDateTrigger, addDateError);
+}
+
+if (amountIsInvalid || dateIsInvalid) {
+focusInvalidBillField(amountIsInvalid ? addAmountInput : addDateTrigger);
+return;
+}
+
+// 3. 把 datetime-local 的 T 转回原来的空格格式
+var formattedDate = dateVal.replace('T', ' ');  // "2026-08-01T14:10" → "2026-08-01 14:10"
+
+// 4. editingBillId 为 null 时，继续走原来的新增逻辑
+if (editingBillId === null) {
+var newBill = {
+id: Date.now(),              // 新增时才生成新 ID
+type: type,
+category: selectedCategory,
+amount: amount,
+note: note,
+date: formattedDate
+};
+addBill(newBill);
+} else {
+// 5. 编辑时找到原账单，只修改允许修改的字段，原 id 保持不变
+var bills = getBills();
+var foundBill = false;
+bills.forEach(function(bill) {
+if (bill.id === editingBillId) {
+bill.type = type;
+bill.category = selectedCategory;
+bill.amount = amount;
+bill.note = note;
+bill.date = formattedDate;
+foundBill = true;
+}
+});
+
+if (!foundBill) {
+alert('没有找到要编辑的账单，请重新选择');
+closeBillModal();
+return;
+}
+saveBills(bills);
+}
+
+// 6. 保存成功后退出编辑模式，并同时刷新首页和统计页
+closeBillModal();
+renderHomeOverview();
+renderStats();
+});
+
+// ===== 预算超支警告检查 =====
+function checkOverbudgetWarning() {
+var type = document.getElementById('add-type').value;
+var amount = parseFloat(document.getElementById('add-amount').value) || 0;
+var warning = document.getElementById('overbudget-warning');
+
+// 非支出或金额为 0 时不警告
+if (type !== 'expense' || amount <= 0) {
+warning.style.display = 'none';
+return;
+}
+
+var budget = parseFloat(localStorage.getItem('app_budget')) || 0;
+if (budget <= 0) {
+warning.style.display = 'none';
+return;
+}
+
+// 第7关：按表单选择的月份计算；编辑时先排除原账单，避免重复计算
+var dateVal = document.getElementById('add-date').value;
+var ym = dateVal ? dateVal.slice(0, 7) : getYearMonthStr(new Date());
+var bills = getBills();
+var currentExpense = bills.filter(function(b) {
+return b.type === 'expense' && b.date.startsWith(ym) &&
+(editingBillId === null || b.id !== editingBillId);
+}).reduce(function(sum, b) { return sum + (parseFloat(b.amount) || 0); }, 0);
+
+warning.style.display = (currentExpense + amount) > budget ? 'flex' : 'none';
+}
+
+// 金额输入变化时实时检查
+document.getElementById('add-amount').addEventListener('input', checkOverbudgetWarning);
+// 第8关：切换收支类型时重置为该类型的首个分类，并重新检查预算
+document.getElementById('add-type').addEventListener('change', function() {
+var categoryNames = getCategoryNamesByType(this.value);
+selectedCategory = categoryNames[0];
+buildCategoryGrid();
+checkOverbudgetWarning();
+});
+// 第7关：修改账单时间时也重新检查对应月份的预算
+document.getElementById('add-date').addEventListener('input', checkOverbudgetWarning);
+
+// ===== 第5关：统计页月度汇总 + 明细列表 =====
+
+// 当前查看的月份（用 Date 对象，方便增减月份）
+var currentDate = new Date();
+// 当前筛选类型：all / expense / income
+var currentFilterType = 'all';
+
+// 渲染统计页：月度汇总数字 + 明细列表
+function renderStats() {
+var ym = getYearMonthStr(currentDate);  // 如 "2026-08"
+
+// 更新月份显示文字
+document.getElementById('month-text').innerText =
+currentDate.getFullYear() + '年' + String(currentDate.getMonth() + 1).padStart(2, '0') + '月';
+
+// 取出本月的账单
+var bills = getBills();
+var monthBills = bills.filter(function(b) {
+return b && b.date && typeof b.date === 'string' && b.date.startsWith(ym);
+});
+
+// 分别累加收入和支出
+var totalIncome = 0, totalExpense = 0;
+monthBills.forEach(function(b) {
+var amount = parseFloat(b.amount) || 0;
+if (b.type === 'income') totalIncome += amount;
+else totalExpense += amount;
+});
+
+// 更新页面数字
+document.getElementById('stat-income').innerText = '+￥' + totalIncome.toFixed(2);
+document.getElementById('stat-expense').innerText = '-￥' + totalExpense.toFixed(2);
+var balance = totalIncome - totalExpense;
+document.getElementById('stat-balance').innerText =
+(balance < 0 ? '-￥' : '￥') + Math.abs(balance).toFixed(2);
+
+// 更新预算进度条
+updateBudgetUI(totalExpense);
+
+// 渲染饼图 + 明细列表
+renderChart(monthBills, totalExpense);
+renderDetailList(monthBills);
+}
+
+// ===== 预算功能：更新进度条 =====
+function updateBudgetUI(expense) {
+var fill = document.getElementById('budget-progress-fill');
+var usedText = document.getElementById('budget-used-text');
+var pctText = document.getElementById('budget-percent-text');
+var statusText = document.getElementById('budget-status-text');
+var progressCard = document.getElementById('budget-progress-card');
+var progressTrack = document.getElementById('budget-progress-track');
+var budget = parseFloat(localStorage.getItem('app_budget')) || 0;
+
+progressCard.classList.remove('is-unset', 'is-near', 'is-at-limit', 'is-over');
+
+if (!budget || budget <= 0) {
+// 没设预算
+usedText.innerText = '本月已支出 ￥' + expense.toFixed(2);
+pctText.innerText = '未设置预算';
+statusText.innerText = '设置预算后可查看使用进度';
+fill.style.width = '0%';
+fill.classList.remove('overbudget');
+progressCard.classList.add('is-unset');
+progressTrack.setAttribute('aria-valuenow', '0');
+progressTrack.setAttribute('aria-valuetext', '未设置预算，本月已支出' + expense.toFixed(2) + '元');
+return;
+}
+
+// 已设预算：计算百分比
+usedText.innerText = '已用 ￥' + expense.toFixed(2) + ' / 预算 ￥' + budget.toFixed(2);
+var pct = expense / budget * 100;
+fill.style.width = Math.min(pct, 100) + '%';  // 最多 100%，不溢出
+pctText.innerText = pct.toFixed(1) + '%';
+progressTrack.setAttribute('aria-valuenow', Math.min(pct, 100).toFixed(1));
+
+// 预算状态只改变表达，不改变预算计算
+if (pct > 100) {
+var overAmount = expense - budget;
+statusText.innerText = '已超出预算 ￥' + overAmount.toFixed(2);
+fill.classList.add('overbudget');
+progressCard.classList.add('is-over');
+progressTrack.setAttribute('aria-valuetext', '已使用预算' + pct.toFixed(1) + '%，超出预算' + overAmount.toFixed(2) + '元');
+} else if (Math.abs(pct - 100) < 0.0000001) {
+statusText.innerText = '已达到预算';
+fill.classList.remove('overbudget');
+progressCard.classList.add('is-at-limit');
+progressTrack.setAttribute('aria-valuetext', '已达到预算，使用100%');
+} else {
+var remainingAmount = budget - expense;
+statusText.innerText = '剩余 ￥' + remainingAmount.toFixed(2);
+fill.classList.remove('overbudget');
+if (pct >= 80) progressCard.classList.add('is-near');
+progressTrack.setAttribute('aria-valuetext', '已使用预算' + pct.toFixed(1) + '%，剩余' + remainingAmount.toFixed(2) + '元');
+}
+}
+
+// ===== 第6关：Chart.js 环形图 =====
+
+// Chart.js 实例引用（每次重画前要先销毁旧的）
+var myChart = null;
+
+// 渲染支出分类饼图
+function renderChart(monthBills, totalExpense) {
+var canvas = document.getElementById('categoryChart');
+var ctx = canvas.getContext('2d');
+var chartContent = document.getElementById('chart-content');
+var emptyState = document.getElementById('chart-empty-state');
+var emptyTitle = document.getElementById('chart-empty-title');
+var emptyDesc = document.getElementById('chart-empty-desc');
+var unavailableState = document.getElementById('chart-unavailable-state');
+var chartContainer = document.getElementById('chart-container');
+var legend = document.getElementById('chart-legend');
+var insight = document.getElementById('stats-insight');
+
+// 销毁旧图表（否则会叠加报错）
+if (myChart) {
+myChart.destroy();
+myChart = null;
+}
+
+legend.innerHTML = '';
+insight.innerText = '';
+insight.hidden = true;
+unavailableState.hidden = true;
+
+// 没有支出数据时不画图
+if (totalExpense === 0) {
+ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+emptyTitle.innerText = '本月暂无支出';
+emptyDesc.innerText = '记一笔支出后，这里会显示分类占比。';
+emptyState.hidden = false;
+chartContent.hidden = true;
+canvas.setAttribute('aria-label', '本月暂无支出分类统计');
+return;
+}
+
+emptyState.hidden = true;
+chartContent.hidden = false;
+
+// === 第1步：统计每个分类的支出金额 ===
+var categoryTotals = {};
+monthBills.forEach(function(b) {
+if (b.type === 'expense') {
+var amount = parseFloat(b.amount) || 0;
+categoryTotals[b.category] = (categoryTotals[b.category] || 0) + amount;
+}
+});
+
+// === 第2步：拆成三个数组（Chart.js 需要的格式）===
+// 所有分类都单独显示，并按金额从高到低排列
+var labels = [], data = [], colors = [];
+var categoryEntries = Object.keys(categoryTotals).map(function(cat) {
+return { category: cat, amount: categoryTotals[cat] };
+}).sort(function(a, b) {
+return b.amount - a.amount;
+});
+
+categoryEntries.forEach(function(entry) {
+labels.push(entry.category);
+data.push(entry.amount);
+var cat = entry.category;
+colors.push(getCategoryConfig(cat, 'expense').chartColor);
+});
+
+// 文本图例不依赖颜色，弱网兜底时也可读取分类数据
+legend.innerHTML = labels.map(function(label, i) {
+var pct = ((data[i] / totalExpense) * 100).toFixed(1);
+return '<div class="legend-row">' +
+'<div class="legend-left">' +
+'<span class="legend-dot" style="background:' + colors[i] + ';" aria-hidden="true"></span>' +
+'<span class="legend-name">' + label + '</span>' +
+'</div>' +
+'<div class="legend-value">' +
+'<span class="legend-amount">￥' + data[i].toFixed(2) + '</span>' +
+'<span class="legend-pct">' + pct + '%</span>' +
+'</div>' +
+'</div>';
+}).join('');
+
+var topPct = ((data[0] / totalExpense) * 100).toFixed(1);
+insight.innerText = '本月支出最多：' + labels[0] + ' ￥' + data[0].toFixed(2) + '，占 ' + topPct + '%';
+insight.hidden = false;
+canvas.setAttribute('aria-label', '本月支出分类统计：' + labels.map(function(label, i) {
+return label + data[i].toFixed(2) + '元，占' + ((data[i] / totalExpense) * 100).toFixed(1) + '%';
+}).join('；'));
+
+// 本地库异常时保留分类文字和明细，不中断整页刷新
+if (typeof Chart !== 'function') {
+ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+chartContainer.hidden = true;
+unavailableState.hidden = false;
+return;
+}
+
+chartContainer.hidden = false;
+
+// === 第3步：用 Chart.js 创建环形图 ===
+try {
+myChart = new Chart(ctx, {
+type: 'doughnut',          // 环形图
+data: {
+labels: labels,
+datasets: [{
+data: data,
+backgroundColor: colors,
+borderColor: '#FFFFFF',  // 扇区间白色分割线
+borderWidth: 2
+}]
+},
+options: {
+responsive: true,         // 自适应容器大小
+rotation: 0,              // 从 12 点方向开始绘制
+circumference: 360,       // 始终绘制完整闭合圆环
+animation: {
+animateRotate: false      // 避免加载过程短暂呈现为带缺口的仪表盘形态
+},
+cutout: '64%',            // 稍微减轻圆环视觉重量，同时保留清晰占比
+plugins: {
+legend: { display: false },  // 不用 Chart.js 自带图例，我们自己画
+tooltip: {
+callbacks: {
+// hover 时显示「分类名: ￥金额 (占比%)」
+label: function(context) {
+var val = context.raw;
+var pct = ((val / totalExpense) * 100).toFixed(1);
+return ' ' + context.label + ': ￥' + val.toFixed(2) + ' (' + pct + '%)';
+}
+}
+}
+}
+},
+// 注册中心文字插件：在环形图镂空区域绘制「总支出 + 金额」
+plugins: [{
+id: 'centerText',
+afterDraw: function(chart) {
+var ctx = chart.ctx;
+var cx = chart.width / 2;   // 中心 X 坐标
+var cy = chart.height / 2;  // 中心 Y 坐标
+
+// 第一行：「总支出」灰色小字
+ctx.save();
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillStyle = '#888888';
+ctx.font = '12px sans-serif';
+ctx.fillText('总支出', cx, cy - 12);
+
+// 第二行：「￥金额」黑色粗体大字
+ctx.fillStyle = '#333333';
+var centerAmountText = '￥' + totalExpense.toFixed(2);
+ctx.font = 'bold ' + (centerAmountText.length > 11 ? '13px' : '16px') + ' sans-serif';
+ctx.fillText(centerAmountText, cx, cy + 10);
+ctx.restore();
+}
+}]
+});
+} catch (error) {
+myChart = null;
+chartContainer.hidden = true;
+unavailableState.hidden = false;
+console.warn('统计图表暂时无法创建');
+}
+}
+
+// 渲染明细列表：根据筛选条件显示账单
+function renderDetailList(monthBills) {
+var container = document.getElementById('detail-list');
+var filtered = monthBills.slice();
+
+// 按类型筛选
+if (currentFilterType === 'expense') filtered = filtered.filter(function(b) { return b.type === 'expense'; });
+if (currentFilterType === 'income') filtered = filtered.filter(function(b) { return b.type === 'income'; });
+
+// 按时间倒序排列
+filtered.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+
+if (!filtered.length) {
+var emptyText = '暂无账单记录';
+if (currentFilterType === 'expense') emptyText = '暂无支出记录';
+if (currentFilterType === 'income') emptyText = '暂无收入记录';
+container.innerHTML = '<div class="empty-text">' + emptyText + '</div>';
+return;
+}
+
+// 统计明细复用首页已确认的双行文字结构，不新增管理入口
+container.innerHTML = filtered.map(function(b) {
+var cfg = getCategoryConfig(b.category, b.type);
+var noteText = b.note == null ? '' : String(b.note).trim();
+var amountValue = parseFloat(b.amount) || 0;
+return '<div class="bill-item" data-bill-id="' + b.id + '">' +
+'<div class="bill-left">' +
+'<div class="bill-icon" style="background:' + cfg.bg + '">' + cfg.icon + '</div>' +
+'<div class="bill-copy">' +
+'<div class="bill-title">' + b.category + '</div>' +
+'<div class="bill-meta">' +
+'<div class="bill-date">' + formatHomeBillDate(b.date) + '</div>' +
+(noteText ? '<span class="bill-meta-separator">·</span><div class="bill-note">' + noteText + '</div>' : '') +
+'</div>' +
+'</div>' +
+'</div>' +
+'<div class="bill-amount ' + (b.type === 'income' ? 'amount-income' : 'amount-expense') + '">' +
+(b.type === 'income' ? '+' : '-') + '￥' + amountValue.toFixed(2) +
+'</div>' +
+'</div>';
+}).join('');
+
+// 第7关：明细列表每次重新渲染后重新绑定长按事件
+bindBillLongPressEvents();
+}
+
+// ===== 第7关：长按账单 → 编辑 / 删除 =====
+
+var billActionSheet = document.getElementById('bill-action-sheet');
+var billActionSheetTrigger = null;
+var lastTouchStartTime = 0;  // 防止触屏结束后又触发一次模拟鼠标事件
+
+// 第1步：根据账单 id 找到原账单，保留 id 原来的数据类型
+function findBillById(id) {
+var bills = getBills();
+return bills.filter(function(bill) {
+return String(bill.id) === String(id);
+})[0];
+}
+
+// 第2步：打开和关闭底部操作菜单
+function openBillActionSheet(id, trigger) {
+var bill = findBillById(id);
+if (!bill) return;
+
+selectedBillId = bill.id;
+billActionSheetTrigger = trigger && trigger.isConnected ? trigger : null;
+billActionSheet.classList.add('active');
+}
+
+function closeBillActionSheet() {
+billActionSheet.classList.remove('active');
+selectedBillId = null;
+billActionSheetTrigger = null;
+}
+
+// 首页更多按钮仅作为现有账单操作菜单的第二个入口
+function bindHomeBillMoreButtons() {
+document.querySelectorAll('#home-bill-list .bill-more-button').forEach(function(button) {
+if (button.getAttribute('data-more-bound') === 'true') return;
+button.setAttribute('data-more-bound', 'true');
+
+// 不让按钮上的按压冒泡到账单行，避免启动原有长按计时器
+button.addEventListener('touchstart', function(e) {
+e.stopPropagation();
+}, { passive: true });
+
+button.addEventListener('mousedown', function(e) {
+e.stopPropagation();
+});
+
+button.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+e.stopPropagation();
+});
+
+button.addEventListener('click', function(e) {
+e.stopPropagation();
+openBillActionSheet(button.getAttribute('data-bill-id'), button);
+});
+});
+}
+
+// 第3步：统一给首页和统计页的账单绑定手机、鼠标长按事件
+function bindBillLongPressEvents() {
+document.querySelectorAll('.bill-item[data-bill-id]').forEach(function(item) {
+// 已绑定过的旧节点不重复绑定；重新 render 出来的新节点仍会正常绑定
+if (item.getAttribute('data-long-press-bound') === 'true') return;
+item.setAttribute('data-long-press-bound', 'true');
+
+var longPressTimer = null;
+var startX = 0;
+var startY = 0;
+var moveThreshold = 10;  // 移动超过 10px 就视为滚动或滑动
+
+function clearLongPress() {
+if (longPressTimer !== null) {
+clearTimeout(longPressTimer);
+longPressTimer = null;
+}
+item.classList.remove('long-press-active');
+}
+
+function startLongPress(x, y) {
+clearLongPress();
+startX = x;
+startY = y;
+item._longPressTriggered = false;
+item.classList.add('long-press-active');
+
+longPressTimer = setTimeout(function() {
+longPressTimer = null;
+item._longPressTriggered = true;
+item.classList.remove('long-press-active');
+// 第7关：清除系统可能产生的文字选区，避免出现绿色选择手柄
+if (window.getSelection) window.getSelection().removeAllRanges();
+openBillActionSheet(item.getAttribute('data-bill-id'), null);
+}, 450);
+}
+
+function checkLongPressMove(x, y) {
+var dx = x - startX;
+var dy = y - startY;
+if (Math.abs(dx) > moveThreshold || Math.abs(dy) > moveThreshold) {
+clearLongPress();
+}
+}
+
+// 手机端：上下滚动和左右滑动超过阈值时都会取消长按
+item.addEventListener('touchstart', function(e) {
+if (e.touches.length !== 1) return;
+lastTouchStartTime = Date.now();
+startLongPress(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: true });
+
+item.addEventListener('touchmove', function(e) {
+if (!e.touches.length) return;
+checkLongPressMove(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: true });
+
+item.addEventListener('touchend', clearLongPress);
+item.addEventListener('touchcancel', clearLongPress);
+
+// 桌面端：鼠标左键按住约 450ms，移动超过阈值或离开时取消
+item.addEventListener('mousedown', function(e) {
+if (e.button !== 0 || Date.now() - lastTouchStartTime < 800) return;
+startLongPress(e.clientX, e.clientY);
+});
+item.addEventListener('mousemove', function(e) {
+if (longPressTimer === null) return;
+checkLongPressMove(e.clientX, e.clientY);
+});
+item.addEventListener('mouseup', clearLongPress);
+item.addEventListener('mouseleave', clearLongPress);
+
+// 阻止浏览器自己的长按菜单盖住账单操作菜单
+item.addEventListener('contextmenu', function(e) {
+e.preventDefault();
+});
+});
+}
+
+// 第4步：点击“编辑账单”，把原数据填回现有的记账弹窗
+document.getElementById('action-edit-bill').addEventListener('click', function() {
+var billId = selectedBillId;
+var returnFocus = billActionSheetTrigger;
+closeBillActionSheet();
+
+var bill = findBillById(billId);
+if (!bill) {
+restoreBillModalFocus(returnFocus);
+return;
+}
+
+billModalReturnFocus = returnFocus && returnFocus.isConnected ? returnFocus : openAddModalButton;
+editingBillId = bill.id;
+document.getElementById('add-type').value = bill.type;
+syncBillTypeToggle();
+selectedCategory = bill.category;
+buildCategoryGrid();
+document.getElementById('add-amount').value = bill.amount;
+document.getElementById('add-note').value = bill.note || '';
+// localStorage 使用空格，datetime-local 需要 T
+document.getElementById('add-date').value =
+typeof bill.date === 'string' ? bill.date.replace(' ', 'T') : '';
+syncBillTimeTrigger();
+clearBillFormErrors();
+billModalTitle.innerText = '编辑账单';
+saveBillButton.innerText = '保存修改';
+captureBillModalInitialState();
+modal.classList.add('active');
+focusBillModalStart();
+checkOverbudgetWarning();
+});
+
+// 第5步：长按菜单的删除入口继续调用原来的自定义确认弹窗
+document.getElementById('action-delete-bill').addEventListener('click', function() {
+var billId = selectedBillId;
+closeBillActionSheet();
+if (billId !== null) deleteBill(billId);
+});
+
+// 第6步：点击取消或遮罩，只关闭菜单，不改动账单数据
+document.getElementById('action-cancel-bill').addEventListener('click', closeBillActionSheet);
+billActionSheet.addEventListener('click', function(e) {
+if (e.target === billActionSheet) closeBillActionSheet();
+});
+
+// 删除账单：改为弹出自定义确认弹窗，确认后再删除
+var confirmModal = document.getElementById('confirm-modal');
+var pendingDeleteId = null;  // 待删除的账单 id
+
+window.deleteBill = function(id) {
+// 找到这条账单，用于在弹窗中展示信息
+var bills = getBills();
+var bill = bills.filter(function(b) { return b.id === id; })[0];
+if (!bill) return;
+
+pendingDeleteId = id;
+
+// 组装弹窗里的账单信息
+var cfg = getCategoryConfig(bill.category, bill.type);
+var infoEl = document.getElementById('confirm-bill-info');
+infoEl.innerHTML =
+'<div>' + cfg.icon + ' ' + bill.category + (bill.note ? '（' + bill.note + '）' : '') + '</div>' +
+'<div style="font-size:12px;color:var(--text-sub);margin-top:2px">' + bill.date + '</div>' +
+'<div class="confirm-bill-amount ' + (bill.type === 'income' ? 'income' : '') + '">' +
+(bill.type === 'income' ? '+' : '-') + '￥' + parseFloat(bill.amount).toFixed(2) +
+'</div>';
+
+confirmModal.classList.add('active');
+};
+
+// 点击「确认删除」：执行删除并刷新
+document.getElementById('confirm-delete-btn').addEventListener('click', function() {
+if (pendingDeleteId === null) return;
+var bills = getBills();
+bills = bills.filter(function(b) { return b.id !== pendingDeleteId; });
+saveBills(bills);
+pendingDeleteId = null;
+confirmModal.classList.remove('active');
+renderStats();        // 刷新统计页
+renderHomeOverview(); // 刷新首页
+});
+
+// 关闭确认弹窗：点「取消」按钮 或 点击遮罩
+document.getElementById('confirm-cancel-btn').addEventListener('click', function() {
+pendingDeleteId = null;
+confirmModal.classList.remove('active');
+});
+confirmModal.addEventListener('click', function(e) {
+if (e.target === confirmModal) {
+pendingDeleteId = null;
+confirmModal.classList.remove('active');
+}
+});
+
+// === 月份切换事件 ===
+function changeStatsMonth(delta) {
+currentDate = new Date(
+currentDate.getFullYear(),
+currentDate.getMonth() + delta,
+1
+);
+renderStats();
+}
+
+document.getElementById('prev-month').addEventListener('click', function() {
+changeStatsMonth(-1);
+});
+document.getElementById('next-month').addEventListener('click', function() {
+changeStatsMonth(1);
+});
+
+// === 设置预算（页面内弹窗） ===
+var budgetModal = document.getElementById('budget-modal');
+var budgetInput = document.getElementById('budget-input');
+document.getElementById('open-budget-btn').addEventListener('click', function() {
+// 打开时预填当前预算（没设置过则留空）
+budgetInput.value = localStorage.getItem('app_budget') || '';
+budgetModal.classList.add('active');
+budgetInput.focus();
+});
+budgetModal.addEventListener('click', function(e) {
+if (e.target === budgetModal) budgetModal.classList.remove('active');  // 点遮罩关闭
+});
+document.getElementById('save-budget-btn').addEventListener('click', function() {
+var val = parseFloat(budgetInput.value);
+if (isNaN(val) || val < 0) {
+alert('请输入有效的大于等于0的数字');
+return;
+}
+localStorage.setItem('app_budget', val);
+budgetModal.classList.remove('active');
+renderStats();  // 刷新进度条
+});
+
+// === 展开/收起明细 ===
+var toggleBtn = document.getElementById('toggle-detail-btn');
+var detailSection = document.getElementById('detail-section');
+toggleBtn.addEventListener('click', function() {
+if (detailSection.style.display === 'none') {
+detailSection.style.display = 'block';
+detailSection.setAttribute('aria-hidden', 'false');
+toggleBtn.setAttribute('aria-expanded', 'true');
+toggleBtn.innerText = '收起明细 ▲';
+} else {
+detailSection.style.display = 'none';
+detailSection.setAttribute('aria-hidden', 'true');
+toggleBtn.setAttribute('aria-expanded', 'false');
+toggleBtn.innerText = '展开明细 ▼';
+}
+});
+
+// === 筛选标签切换 ===
+document.querySelectorAll('#detail-section .filter-tab').forEach(function(tab) {
+tab.addEventListener('click', function() {
+document.querySelectorAll('#detail-section .filter-tab').forEach(function(t) {
+t.classList.remove('active');
+t.setAttribute('aria-pressed', 'false');
+});
+this.classList.add('active');
+this.setAttribute('aria-pressed', 'true');
+currentFilterType = this.getAttribute('data-filter');
+renderStats();  // 重新渲染明细
+});
+});
+
+// === 导航切页：账单页/统计页切换时自动刷新对应数据 ===
+document.querySelectorAll('.nav-item').forEach(function(item) {
+item.addEventListener('click', function() {
+var target = this.getAttribute('data-target');
+if (!target) return;
+document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+this.classList.add('active');
+document.querySelectorAll('.page').forEach(function(p) {
+if (p.id === target) {
+p.classList.add('active');
+if (target === 'page-stats') renderStats();    // 切到统计页时刷新
+if (target === 'page-bills') renderHomeOverview(); // 切到账单页时刷新
+} else {
+p.classList.remove('active');
+}
+});
+});
+});
+
+// ===== 统一 Option Sheet：只负责展示与同步，不参与业务判断 =====
+var optionSheet = document.getElementById('option-sheet');
+var optionSheetTitle = document.getElementById('option-sheet-title');
+var optionSheetList = document.getElementById('option-sheet-list');
+var optionSheetCancel = document.getElementById('option-sheet-cancel');
+var activeOptionTrigger = null;
+
+function findOptionTrigger(selectId) {
+var result = null;
+document.querySelectorAll('.option-sheet-trigger[data-option-select]').forEach(function(trigger) {
+if (trigger.getAttribute('data-option-select') === selectId) result = trigger;
+});
+return result;
+}
+
+function syncOptionTrigger(select) {
+if (!select) return;
+var trigger = findOptionTrigger(select.id);
+if (!trigger) return;
+var label = trigger.querySelector('.option-sheet-trigger-label');
+var selectedOption = select.options[select.selectedIndex];
+label.innerText = selectedOption ? selectedOption.text : '请选择';
+}
+
+function closeOptionSheet() {
+optionSheet.classList.remove('active');
+optionSheet.setAttribute('aria-hidden', 'true');
+document.body.classList.remove('option-sheet-open');
+if (activeOptionTrigger) {
+activeOptionTrigger.setAttribute('aria-expanded', 'false');
+activeOptionTrigger.focus();
+}
+activeOptionTrigger = null;
+}
+
+function openOptionSheet(title, items, selectedValue, onSelect, trigger) {
+activeOptionTrigger = trigger;
+optionSheetTitle.innerText = title;
+optionSheetList.innerHTML = '';
+
+items.forEach(function(item) {
+var button = document.createElement('button');
+button.type = 'button';
+button.className = 'option-sheet-option' + (item.value === selectedValue ? ' selected' : '');
+button.setAttribute('role', 'radio');
+button.setAttribute('aria-checked', item.value === selectedValue ? 'true' : 'false');
+
+if (item.icon) {
+var leading = document.createElement('span');
+leading.className = 'option-sheet-option-leading';
+leading.style.background = item.iconBackground || 'var(--background)';
+leading.innerHTML = item.icon;
+button.appendChild(leading);
+}
+
+var text = document.createElement('span');
+text.className = 'option-sheet-option-text';
+text.innerText = item.label;
+button.appendChild(text);
+
+var radio = document.createElement('span');
+radio.className = 'option-sheet-radio';
+radio.setAttribute('aria-hidden', 'true');
+button.appendChild(radio);
+
+button.addEventListener('click', function() {
+onSelect(item.value);
+closeOptionSheet();
+});
+optionSheetList.appendChild(button);
+});
+
+trigger.setAttribute('aria-expanded', 'true');
+optionSheet.setAttribute('aria-hidden', 'false');
+document.body.classList.add('option-sheet-open');
+optionSheet.classList.add('active');
+
+var selectedButton = optionSheetList.querySelector('.option-sheet-option.selected');
+setTimeout(function() {
+if (selectedButton && optionSheet.classList.contains('active')) selectedButton.focus();
+}, 240);
+}
+
+function openSelectOptionSheet(trigger) {
+var select = document.getElementById(trigger.getAttribute('data-option-select'));
+if (!select) return;
+var items = Array.prototype.map.call(select.options, function(option) {
+return { value: option.value, label: option.text };
+});
+
+openOptionSheet(trigger.getAttribute('data-option-title'), items, select.value, function(value) {
+if (select.value === value) return;
+select.value = value;
+select.dispatchEvent(new Event('change', { bubbles: true }));
+}, trigger);
+}
+
+function initializeOptionSheets() {
+document.querySelectorAll('.option-sheet-trigger[data-option-select]').forEach(function(trigger) {
+var select = document.getElementById(trigger.getAttribute('data-option-select'));
+if (!select) return;
+
+syncOptionTrigger(select);
+trigger.addEventListener('click', function() { openSelectOptionSheet(trigger); });
+select.addEventListener('change', function() { syncOptionTrigger(select); });
+new MutationObserver(function() { syncOptionTrigger(select); }).observe(select, {
+childList: true,
+subtree: true
+});
+});
+
+new MutationObserver(function() {
+if (modal.classList.contains('active')) {
+syncOptionTrigger(document.getElementById('add-type'));
+}
+}).observe(modal, { attributes: true, attributeFilter: ['class'] });
+}
+
+optionSheetCancel.addEventListener('click', closeOptionSheet);
+optionSheet.addEventListener('click', function(e) {
+if (e.target === optionSheet) closeOptionSheet();
+});
+document.addEventListener('keydown', function(e) {
+if (e.key === 'Escape' && optionSheet.classList.contains('active')) closeOptionSheet();
+});
+
+// 页面加载完成后渲染首页
+document.addEventListener('DOMContentLoaded', function() {
+updateHomeCategoryFilter();
+renderHomeOverview();
+syncBillTypeToggle();
+initializeOptionSheets();
+updateHomeFilterControls();
+});
+</script>
+</body>
+</html>
