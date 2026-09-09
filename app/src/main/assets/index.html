@@ -2579,12 +2579,32 @@ text-align: right;
 color: var(--income);
 }
 
-.settings-row[data-update-state="new"] .settings-row-value {
+.settings-row[data-update-state="update-available"] .settings-row-value {
 color: var(--expense);
 }
 
-.settings-row[data-update-state="error"] .settings-row-value {
+.settings-row[data-update-state="network-error"] .settings-row-value,
+.settings-row[data-update-state="service-error"] .settings-row-value {
 color: var(--warning);
+}
+
+.settings-row[data-update-state="checking"] {
+cursor: wait;
+opacity: 0.72;
+}
+
+.settings-row[data-update-state="checking"] .settings-row-chevron,
+.settings-row[data-update-state="latest"] .settings-row-chevron {
+display: none;
+}
+
+[data-update-state-view][hidden] {
+display: none !important;
+}
+
+.settings-row:disabled {
+cursor: not-allowed;
+opacity: 0.58;
 }
 
 .settings-row-chevron {
@@ -2884,12 +2904,12 @@ transition-duration: 1ms !important;
 
 <div class="home-toolbar">
 <h1 class="app-header-title">账单</h1>
-<button type="button" class="icon-button settings-entry-button" id="open-settings-button" aria-label="打开设置">
+<button type="button" class="icon-button settings-entry-button" id="open-settings-button" data-settings-action="open-settings" aria-label="打开设置">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <circle cx="12" cy="12" r="3"></circle>
 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-2 3.46-.08-.02a1.65 1.65 0 0 0-1.79.2l-.54.31a1.65 1.65 0 0 0-.82 1.43V22h-4v-.08a1.65 1.65 0 0 0-.82-1.43l-.54-.31a1.65 1.65 0 0 0-1.79-.2l-.08.02-2-3.46.06-.06A1.65 1.65 0 0 0 4.6 15l-.31-.54a1.65 1.65 0 0 0-1.43-.82H2v-4h.86a1.65 1.65 0 0 0 1.43-.82l.31-.54a1.65 1.65 0 0 0-.2-1.79l-.06-.08 2-3.46.08.02a1.65 1.65 0 0 0 1.79-.2l.54-.31a1.65 1.65 0 0 0 .82-1.43V1h4v.08a1.65 1.65 0 0 0 .82 1.43l.54.31a1.65 1.65 0 0 0 1.79.2l.08-.02 2 3.46-.06.08a1.65 1.65 0 0 0-.2 1.79l.31.54a1.65 1.65 0 0 0 1.43.82H22v4h-.86a1.65 1.65 0 0 0-1.43.82L19.4 15z"></path>
 </svg>
-<span class="update-dot" id="settings-entry-update-dot" hidden aria-hidden="true"></span>
+<span class="update-dot" id="settings-entry-update-dot" data-update-badge hidden aria-hidden="true"></span>
 </button>
 </div>
 
@@ -3029,9 +3049,9 @@ transition-duration: 1ms !important;
 </div>
 
 <!-- ===== Settings V1：设置主页 ===== -->
-<div id="page-settings" class="page settings-page">
+<div id="page-settings" class="page settings-page" data-settings-screen="settings">
 <header class="settings-header">
-<button type="button" class="settings-back-button" data-settings-back="page-bills" aria-label="返回账单页">
+<button type="button" class="settings-back-button" data-settings-action="back" aria-label="返回账单页">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
 </button>
 <h1 class="settings-header-title">设置</h1>
@@ -3041,7 +3061,7 @@ transition-duration: 1ms !important;
 <section class="settings-group" aria-labelledby="settings-appearance-label">
 <h2 class="settings-group-label" id="settings-appearance-label">外观</h2>
 <div class="settings-list-card">
-<button type="button" class="settings-row has-subtitle" data-settings-target="page-theme">
+<button type="button" class="settings-row has-subtitle" data-settings-action="open-theme">
 <span class="settings-row-icon" aria-hidden="true">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 2.2 2.2 0 0 0 2.2-2.2c0-.6-.24-1.16-.64-1.56A2.2 2.2 0 0 1 15.12 12H17a4 4 0 0 0 0-8h-5Z"></path><circle cx="7.5" cy="10" r=".7" fill="currentColor" stroke="none"></circle><circle cx="10" cy="6.8" r=".7" fill="currentColor" stroke="none"></circle></svg>
 </span>
@@ -3054,11 +3074,11 @@ transition-duration: 1ms !important;
 <section class="settings-group" aria-labelledby="settings-data-label">
 <h2 class="settings-group-label" id="settings-data-label">数据</h2>
 <div class="settings-list-card">
-<button type="button" class="settings-row has-subtitle" data-settings-target="page-backup">
+<button type="button" class="settings-row has-subtitle" data-settings-action="open-backup">
 <span class="settings-row-icon" aria-hidden="true">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-11Z"></path><path d="M8 4v6h8V4M8 20v-6h8v6"></path></svg>
 </span>
-<span class="settings-row-copy"><span class="settings-row-title">备份与恢复</span><span class="settings-row-subtitle">保护并迁移你的账单数据</span></span>
+<span class="settings-row-copy"><span class="settings-row-title">备份与恢复</span><span class="settings-row-subtitle">暂未开放，后续版本支持</span></span>
 <svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
 </button>
 </div>
@@ -3067,12 +3087,12 @@ transition-duration: 1ms !important;
 <section class="settings-group" aria-labelledby="settings-about-label">
 <h2 class="settings-group-label" id="settings-about-label">关于</h2>
 <div class="settings-list-card">
-<button type="button" class="settings-row has-subtitle" data-settings-target="page-about">
+<button type="button" class="settings-row has-subtitle" data-settings-action="open-about">
 <span class="settings-row-icon" aria-hidden="true">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 10v6M12 7h.01"></path></svg>
 </span>
 <span class="settings-row-copy"><span class="settings-row-title">关于</span><span class="settings-row-subtitle">版本、更新与产品信息</span></span>
-<span class="update-dot" id="settings-about-update-dot" hidden aria-hidden="true"></span>
+<span class="update-dot" id="settings-about-update-dot" data-update-badge hidden aria-hidden="true"></span>
 <svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
 </button>
 </div>
@@ -3080,9 +3100,9 @@ transition-duration: 1ms !important;
 </div>
 
 <!-- ===== Settings V1：主题 ===== -->
-<div id="page-theme" class="page settings-page">
+<div id="page-theme" class="page settings-page" data-settings-screen="theme">
 <header class="settings-header">
-<button type="button" class="settings-back-button" data-settings-back="page-settings" aria-label="返回设置">
+<button type="button" class="settings-back-button" data-settings-action="back" aria-label="返回设置">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
 </button>
 <h1 class="settings-header-title">主题</h1>
@@ -3092,7 +3112,7 @@ transition-duration: 1ms !important;
 <h2 class="settings-intro-title">选择主题</h2>
 <p class="settings-intro-desc">第一版先保留最熟悉的薄荷绿</p>
 </div>
-<button type="button" class="theme-option selected" aria-pressed="true" data-theme="mint">
+<button type="button" class="theme-option selected" aria-pressed="true" data-settings-action="select-theme" data-theme-value="mint">
 <span class="theme-preview" aria-hidden="true"><span class="theme-preview-primary"></span><span class="theme-preview-surface"></span></span>
 <span class="theme-option-copy"><span class="theme-option-title">薄荷绿</span><span class="theme-option-desc">默认主题</span><span class="theme-current-badge">当前</span></span>
 <span class="theme-selected-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg></span>
@@ -3104,9 +3124,9 @@ transition-duration: 1ms !important;
 </div>
 
 <!-- ===== Settings V1：备份与恢复视觉壳 ===== -->
-<div id="page-backup" class="page settings-page">
+<div id="page-backup" class="page settings-page" data-settings-screen="backup">
 <header class="settings-header">
-<button type="button" class="settings-back-button" data-settings-back="page-settings" aria-label="返回设置">
+<button type="button" class="settings-back-button" data-settings-action="back" aria-label="返回设置">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
 </button>
 <h1 class="settings-header-title">备份与恢复</h1>
@@ -3117,27 +3137,25 @@ transition-duration: 1ms !important;
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="m9 12 2 2 4-4"></path></svg>
 <span>保护你的账单数据</span>
 </div>
-<p class="backup-intro-desc">备份可用于迁移或恢复数据，请妥善保管备份文件。</p>
+<p class="backup-intro-desc">备份与恢复功能暂未开放，将在后续版本中提供。</p>
 </section>
 <div class="settings-panel">
-<button type="button" class="settings-row has-subtitle" data-settings-action="backup">
+<button type="button" class="settings-row has-subtitle" disabled aria-disabled="true">
 <span class="settings-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path></svg></span>
-<span class="settings-row-copy"><span class="settings-row-title">备份数据</span><span class="settings-row-subtitle">导出当前账单数据</span></span>
-<svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+<span class="settings-row-copy"><span class="settings-row-title">备份数据</span><span class="settings-row-subtitle">暂未开放</span></span>
 </button>
-<button type="button" class="settings-row has-subtitle" data-settings-action="restore">
+<button type="button" class="settings-row has-subtitle" disabled aria-disabled="true">
 <span class="settings-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9M7 16l5 5 5-5M5 10V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5"></path></svg></span>
-<span class="settings-row-copy"><span class="settings-row-title">恢复数据</span><span class="settings-row-subtitle">从备份文件中恢复</span></span>
-<svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+<span class="settings-row-copy"><span class="settings-row-title">恢复数据</span><span class="settings-row-subtitle">暂未开放</span></span>
 </button>
 </div>
-<p class="settings-footnote">数据文件仅在你主动操作时处理。</p>
+<p class="settings-footnote">当前版本不会读取、导出或恢复任何备份文件。</p>
 </div>
 
 <!-- ===== Settings V1：关于 ===== -->
-<div id="page-about" class="page settings-page">
+<div id="page-about" class="page settings-page" data-settings-screen="about">
 <header class="settings-header">
-<button type="button" class="settings-back-button" data-settings-back="page-settings" aria-label="返回设置">
+<button type="button" class="settings-back-button" data-settings-action="back" aria-label="返回设置">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
 </button>
 <h1 class="settings-header-title">关于</h1>
@@ -3151,15 +3169,22 @@ transition-duration: 1ms !important;
 <div class="settings-panel">
 <div class="settings-row is-plain is-static">
 <span class="settings-row-copy"><span class="settings-row-title">当前版本</span></span>
-<span class="settings-row-value">2.1.3</span>
+<span class="settings-row-value" data-settings-current-version>浏览器预览（未注入 Android 版本）</span>
 </div>
-<button type="button" class="settings-row is-plain" id="about-update-row" data-settings-action="check-update" data-update-state="default">
+<button type="button" class="settings-row is-plain" id="about-update-row" data-update-control data-settings-action="check-update" data-update-state="idle">
 <span class="settings-row-copy"><span class="settings-row-title">软件更新</span></span>
-<span class="settings-row-value" id="about-update-status" aria-live="polite" hidden></span>
-<span class="update-dot" id="about-update-dot" hidden aria-hidden="true"></span>
+<span class="settings-row-value" id="about-update-status" aria-live="polite">
+<span data-update-state-view="idle" data-update-status-text>检查更新</span>
+<span data-update-state-view="checking" data-update-status-text hidden>正在检查更新…</span>
+<span data-update-state-view="latest" data-update-status-text hidden>已是最新版本</span>
+<span data-update-state-view="update-available" data-update-status-text hidden>发现新版本</span>
+<span data-update-state-view="network-error" data-update-status-text hidden>网络连接失败，请稍后重试</span>
+<span data-update-state-view="service-error" data-update-status-text hidden>暂时无法检查更新，请稍后重试</span>
+</span>
+<span class="update-dot" id="about-update-dot" data-update-badge hidden aria-hidden="true"></span>
 <svg class="settings-row-chevron" id="about-update-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
 </button>
-<button type="button" class="settings-row is-plain" data-settings-target="page-product-about">
+<button type="button" class="settings-row is-plain" data-settings-action="open-product-about">
 <span class="settings-row-copy"><span class="settings-row-title">关于薄荷绿记账</span></span>
 <svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
 </button>
@@ -3168,9 +3193,9 @@ transition-duration: 1ms !important;
 </div>
 
 <!-- ===== Settings V1：产品介绍 ===== -->
-<div id="page-product-about" class="page settings-page">
+<div id="page-product-about" class="page settings-page" data-settings-screen="product-about">
 <header class="settings-header">
-<button type="button" class="settings-back-button" data-settings-back="page-about" aria-label="返回关于">
+<button type="button" class="settings-back-button" data-settings-action="back" aria-label="返回关于">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
 </button>
 <h1 class="settings-header-title">关于薄荷绿记账</h1>
@@ -5115,88 +5140,6 @@ renderStats();  // 重新渲染明细
 });
 });
 
-// ===== Settings V1：仅负责页面切换、视觉状态与 UX 接口 =====
-var settingsPageIds = ['page-settings', 'page-theme', 'page-backup', 'page-about', 'page-product-about'];
-
-function activatePage(pageId) {
-document.querySelectorAll('.page').forEach(function(page) {
-page.classList.toggle('active', page.id === pageId);
-});
-window.scrollTo(0, 0);
-}
-
-function showSettingsPage(pageId) {
-if (settingsPageIds.indexOf(pageId) === -1) return;
-document.body.classList.add('settings-route-active');
-activatePage(pageId);
-}
-
-function showPrimaryPage(pageId) {
-if (pageId !== 'page-bills' && pageId !== 'page-stats') pageId = 'page-bills';
-document.body.classList.remove('settings-route-active');
-activatePage(pageId);
-document.querySelectorAll('.nav-item').forEach(function(item) {
-item.classList.toggle('active', item.getAttribute('data-target') === pageId);
-});
-if (pageId === 'page-stats') renderStats();
-if (pageId === 'page-bills') renderHomeOverview();
-}
-
-document.getElementById('open-settings-button').addEventListener('click', function() {
-showSettingsPage('page-settings');
-});
-
-document.querySelectorAll('[data-settings-target]').forEach(function(trigger) {
-trigger.addEventListener('click', function() {
-showSettingsPage(this.getAttribute('data-settings-target'));
-});
-});
-
-document.querySelectorAll('[data-settings-back]').forEach(function(trigger) {
-trigger.addEventListener('click', function() {
-var target = this.getAttribute('data-settings-back');
-if (settingsPageIds.indexOf(target) !== -1) showSettingsPage(target);
-else showPrimaryPage(target);
-});
-});
-
-document.querySelectorAll('[data-settings-action]').forEach(function(trigger) {
-trigger.addEventListener('click', function() {
-var action = this.getAttribute('data-settings-action');
-document.dispatchEvent(new CustomEvent('settings:' + action + '-request'));
-});
-});
-
-var settingsUpdateStates = {
-default: { text: '', hideChevron: false },
-checking: { text: '正在检查更新…', hideChevron: true },
-latest: { text: '已是最新版本', hideChevron: true },
-new: { text: '发现新版本', hideChevron: false },
-error: { text: '检查失败，请稍后重试', hideChevron: false }
-};
-
-function setSettingsUpdateState(state, version) {
-var config = settingsUpdateStates[state];
-if (!config) return;
-var hasNewVersion = state === 'new';
-var updateRow = document.getElementById('about-update-row');
-var updateStatus = document.getElementById('about-update-status');
-var updateChevron = document.getElementById('about-update-chevron');
-var statusText = config.text;
-if (hasNewVersion && version) statusText += ' ' + version;
-
-updateRow.setAttribute('data-update-state', state);
-updateStatus.textContent = statusText;
-updateStatus.hidden = statusText === '';
-updateChevron.hidden = config.hideChevron;
-document.getElementById('settings-entry-update-dot').hidden = !hasNewVersion;
-document.getElementById('settings-about-update-dot').hidden = !hasNewVersion;
-document.getElementById('about-update-dot').hidden = !hasNewVersion;
-updateRow.setAttribute('aria-label', statusText ? '软件更新，' + statusText : '软件更新');
-}
-
-window.setSettingsUpdateState = setSettingsUpdateState;
-
 // === 导航切页：账单页/统计页切换时自动刷新对应数据 ===
 document.querySelectorAll('.nav-item').forEach(function(item) {
 item.addEventListener('click', function() {
@@ -5349,19 +5292,8 @@ renderHomeOverview();
 syncBillTypeToggle();
 initializeOptionSheets();
 updateHomeFilterControls();
-var previewParams = new URLSearchParams(window.location.search);
-var previewPage = previewParams.get('preview');
-var previewMap = {
-settings: 'page-settings',
-theme: 'page-theme',
-backup: 'page-backup',
-about: 'page-about',
-product: 'page-product-about'
-};
-var previewUpdateState = previewParams.get('updateState') || 'default';
-setSettingsUpdateState(previewUpdateState, previewParams.get('updateVersion') || '2.2.0');
-if (previewMap[previewPage]) showSettingsPage(previewMap[previewPage]);
 });
 </script>
+<script src="settings-ux.js" data-settings-ux-loader></script>
 </body>
 </html>

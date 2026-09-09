@@ -1,9 +1,11 @@
 (function (global, document) {
 'use strict';
 
+if (global.SettingsUX) return;
+
 // UI contract:
-// screens: data-settings-screen="settings|theme|about"
-// actions: data-settings-action="open-settings|open-theme|open-about|back|select-theme|check-update|view-update|update-later|update-now"
+// screens: data-settings-screen="settings|theme|backup|about|product-about"
+// actions: data-settings-action="open-settings|open-theme|open-backup|open-about|open-product-about|back|select-theme|check-update|view-update|update-later|update-now"
 // theme choices: data-theme-value="..."
 // update views: data-update-state-view="idle|checking|latest|update-available|network-error|service-error"
 var STORAGE_KEYS = {
@@ -275,10 +277,10 @@ function syncRouteDom() {
 if (!document.body) return;
 document.body.setAttribute('data-settings-route', state.route);
 document.body.classList.toggle('settings-route-active', state.route !== 'bills');
-var screens = document.querySelectorAll('[data-settings-screen], #page-settings, #page-theme, #page-backup, #page-about, #page-product-about');
+var screens = document.querySelectorAll('[data-settings-screen]');
 var activeScreen = null;
 screens.forEach(function (screen) {
-var screenRoute = screen.getAttribute('data-settings-screen') || PAGE_TO_ROUTE[screen.id];
+var screenRoute = screen.getAttribute('data-settings-screen');
 var active = screenRoute === state.route;
 screen.hidden = !active;
 screen.classList.toggle('active', active);
@@ -311,40 +313,36 @@ element.textContent = value || '';
 function syncUpdateDom() {
 if (!document.body) return;
 document.body.setAttribute('data-update-state', state.update.status);
-if (typeof global.setSettingsUpdateState === 'function') {
-var visualStateMap = {
-idle: 'default',
-checking: 'checking',
-latest: 'latest',
-'update-available': 'new',
-'network-error': 'network-error',
-'service-error': 'service-error'
-};
-global.setSettingsUpdateState(visualStateMap[state.update.status], state.update.availableVersion);
-}
 document.querySelectorAll('[data-update-state-view]').forEach(function (view) {
 view.hidden = view.getAttribute('data-update-state-view') !== state.update.status;
 });
-document.querySelectorAll('[data-settings-action="check-update"]').forEach(function (button) {
+document.querySelectorAll('[data-update-control]').forEach(function (button) {
 var checking = state.update.status === 'checking';
+var action = state.update.status === 'update-available' && state.update.hasBadge
+? 'view-update'
+: 'check-update';
+button.setAttribute('data-update-state', state.update.status);
+button.setAttribute('data-settings-action', action);
 button.disabled = checking;
 button.setAttribute('aria-disabled', checking ? 'true' : 'false');
 button.setAttribute('aria-busy', checking ? 'true' : 'false');
+button.setAttribute('aria-label', state.update.message
+? '软件更新，' + state.update.message
+: '软件更新');
 });
-document.querySelectorAll('[data-update-badge], #settings-entry-update-dot, #settings-about-update-dot, #about-update-dot').forEach(function (badge) {
+document.querySelectorAll('[data-update-badge]').forEach(function (badge) {
 badge.hidden = !state.update.hasBadge;
 badge.setAttribute('aria-hidden', state.update.hasBadge ? 'false' : 'true');
 });
 updateText('[data-update-status-text]', state.update.message);
-updateText('#about-update-status', state.update.message);
 updateText('[data-update-available-version]', state.update.availableVersion);
 updateText('[data-update-release-notes]', state.update.releaseNotes);
 }
 
 function syncThemeDom() {
 document.documentElement.setAttribute('data-app-theme', state.theme);
-document.querySelectorAll('[data-theme-value], [data-theme]').forEach(function (choice) {
-var value = choice.getAttribute('data-theme-value') || choice.getAttribute('data-theme');
+document.querySelectorAll('[data-theme-value]').forEach(function (choice) {
+var value = choice.getAttribute('data-theme-value');
 var selected = value === state.theme;
 choice.classList.toggle('selected', selected);
 choice.setAttribute('aria-pressed', selected ? 'true' : 'false');
@@ -352,12 +350,14 @@ choice.setAttribute('aria-pressed', selected ? 'true' : 'false');
 }
 
 function syncRuntimeDom() {
-updateText('[data-settings-current-version]', state.runtime.versionName || '未知');
-var legacyVersion = document.querySelector('#page-about .settings-row.is-static .settings-row-value');
-if (legacyVersion) legacyVersion.textContent = state.runtime.versionName || '未知';
-document.querySelectorAll('[data-settings-version-code]').forEach(function (element) {
-element.textContent = state.runtime.versionCode === null ? '' : String(state.runtime.versionCode);
-});
+var versionText = '浏览器预览（未注入 Android 版本）';
+if (state.runtime.versionName) {
+versionText = state.runtime.versionName;
+if (state.runtime.versionCode !== null && !isNaN(state.runtime.versionCode)) {
+versionText += ' (' + state.runtime.versionCode + ')';
+}
+}
+updateText('[data-settings-current-version]', versionText);
 }
 
 function syncDom() {
@@ -414,6 +414,15 @@ if (!info || typeof info !== 'object') return false;
 if (info.versionName) state.runtime.versionName = normalizeVersion(info.versionName);
 if (info.versionCode !== undefined && info.versionCode !== null) {
 state.runtime.versionCode = parseInt(info.versionCode, 10);
+}
+var savedComparison = compareVersions(state.update.availableVersion, state.runtime.versionName);
+if (state.update.status === 'update-available' && savedComparison !== null && savedComparison <= 0) {
+state.update.status = 'idle';
+state.update.message = '检查更新';
+state.update.availableVersion = '';
+state.update.releaseNotes = '';
+state.update.releaseUrl = '';
+persistUpdate();
 }
 recomputeBadge();
 notify('runtime');
@@ -551,14 +560,15 @@ function handleAction(element) {
 var action = element.getAttribute('data-settings-action');
 if (action === 'open-settings') return navigate('settings', element);
 if (action === 'open-theme') return navigate('theme', element);
+if (action === 'open-backup') return navigate('backup', element);
 if (action === 'open-about') return navigate('about', element);
+if (action === 'open-product-about') return navigate('product-about', element);
 if (action === 'back') return handleBack();
-if (action === 'select-theme') return setTheme(element.getAttribute('data-theme-value') || element.getAttribute('data-theme'));
+if (action === 'select-theme') return setTheme(element.getAttribute('data-theme-value'));
 if (action === 'check-update') return checkForUpdates();
 if (action === 'view-update') {
-acknowledgeUpdate();
 emit('view-update', { update: cloneState().update });
-return true;
+return openUpdatePage();
 }
 if (action === 'update-later') {
 acknowledgeUpdate();
@@ -579,27 +589,9 @@ return false;
 
 function onDocumentClick(event) {
 var target = event.target.closest
-? event.target.closest('[data-settings-action], [data-settings-target], [data-settings-back], [data-theme], #open-settings-button')
+? event.target.closest('[data-settings-action]')
 : null;
 if (!target) return;
-if (target.hasAttribute('data-theme') && !target.hasAttribute('data-settings-action')) {
-setTheme(target.getAttribute('data-theme'));
-return;
-}
-if (target.id === 'open-settings-button') {
-navigate('settings', target);
-return;
-}
-var settingsTarget = target.getAttribute('data-settings-target');
-if (settingsTarget) {
-navigate(settingsTarget, target);
-return;
-}
-var settingsBack = target.getAttribute('data-settings-back');
-if (settingsBack) {
-navigate(settingsBack === 'page-bills' ? 'bills' : settingsBack);
-return;
-}
 handleAction(target);
 }
 
@@ -612,12 +604,13 @@ if (values.requestTimeoutMs) config.requestTimeoutMs = Math.max(1000, parseInt(v
 
 function hydrate() {
 var activeSettingsPage = document.querySelector('.settings-page.active');
-if (activeSettingsPage && PAGE_TO_ROUTE[activeSettingsPage.id]) {
-state.route = PAGE_TO_ROUTE[activeSettingsPage.id];
+if (activeSettingsPage && activeSettingsPage.getAttribute('data-settings-screen')) {
+state.route = activeSettingsPage.getAttribute('data-settings-screen');
 }
 var storedUpdate = parseStoredUpdate();
 if (storedUpdate) {
-state.update.availableVersion = normalizeVersion(storedUpdate.availableVersion);
+var storedVersion = normalizeVersion(storedUpdate.availableVersion);
+if (parseVersion(storedVersion)) state.update.availableVersion = storedVersion;
 state.update.releaseNotes = String(storedUpdate.releaseNotes || '');
 state.update.releaseUrl = String(storedUpdate.releaseUrl || '');
 state.update.acknowledgedVersion = normalizeVersion(storedUpdate.acknowledgedVersion);

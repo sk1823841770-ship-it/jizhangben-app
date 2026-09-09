@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
 			public void onPageFinished(WebView view, String url) {
 				super.onPageFinished(view, url);
 				if (url != null && url.startsWith("file:///android_asset/")) {
-					bootstrapSettingsUx(view);
+					publishRuntimeInfo(view);
 				}
 			}
 
@@ -60,21 +60,14 @@ public class MainActivity extends Activity {
 		webView.loadUrl("file:///android_asset/index.html");
 	}
 
-	private void bootstrapSettingsUx(WebView view) {
+	private void publishRuntimeInfo(WebView view) {
 		String versionName = JSONObject.quote(BuildConfig.VERSION_NAME);
 		String runtimeInfo = "{versionName:" + versionName
 				+ ",versionCode:" + BuildConfig.VERSION_CODE + "}";
 		String script = "(function(){"
-				+ "function applyRuntimeInfo(){window.AppRuntimeInfo=" + runtimeInfo + ";"
+				+ "window.AppRuntimeInfo=" + runtimeInfo + ";"
 				+ "window.dispatchEvent(new CustomEvent('app-runtime-info-ready',"
-				+ "{detail:window.AppRuntimeInfo}));}"
-				+ "if(window.SettingsUX){applyRuntimeInfo();return;}"
-				+ "var existing=document.querySelector('script[data-settings-ux-loader]');"
-				+ "if(existing){existing.addEventListener('load',applyRuntimeInfo);return;}"
-				+ "var loader=document.createElement('script');"
-				+ "loader.src='settings-ux.js';"
-				+ "loader.setAttribute('data-settings-ux-loader','true');"
-				+ "loader.onload=applyRuntimeInfo;document.body.appendChild(loader);"
+				+ "{detail:window.AppRuntimeInfo}));"
 				+ "})();";
 		view.evaluateJavascript(script, null);
 	}
