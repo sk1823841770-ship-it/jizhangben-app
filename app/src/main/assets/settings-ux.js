@@ -246,10 +246,12 @@ var navigation = document.querySelector('.nav-bar');
 var addButton = document.getElementById('open-add-modal');
 if (navigation) {
 navigation.hidden = hidden;
+navigation.style.display = hidden ? 'none' : '';
 navigation.setAttribute('aria-hidden', hidden ? 'true' : 'false');
 }
 if (addButton) {
 addButton.hidden = hidden;
+addButton.style.display = hidden ? 'none' : '';
 addButton.setAttribute('aria-hidden', hidden ? 'true' : 'false');
 }
 }
