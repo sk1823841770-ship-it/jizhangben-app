@@ -2,6 +2,8 @@ package com.lxsdq.app;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebResourceRequest;
@@ -61,9 +63,19 @@ public class MainActivity extends Activity {
 	}
 
 	private void publishRuntimeInfo(WebView view) {
-		String versionName = JSONObject.quote(BuildConfig.VERSION_NAME);
-		String runtimeInfo = "{versionName:" + versionName
-				+ ",versionCode:" + BuildConfig.VERSION_CODE + "}";
+		String versionName = "unknown";
+		long versionCode = 0L;
+		try {
+			PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+			if (packageInfo.versionName != null && !packageInfo.versionName.isEmpty()) {
+				versionName = packageInfo.versionName;
+			}
+			versionCode = packageInfo.getLongVersionCode();
+		} catch (PackageManager.NameNotFoundException | RuntimeException error) {
+			// Keep a non-crashing fallback if the current package cannot be queried.
+		}
+		String runtimeInfo = "{versionName:" + JSONObject.quote(versionName)
+				+ ",versionCode:" + versionCode + "}";
 		String script = "(function(){"
 				+ "window.AppRuntimeInfo=" + runtimeInfo + ";"
 				+ "window.dispatchEvent(new CustomEvent('app-runtime-info-ready',"
