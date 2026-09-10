@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.lxsdq.app"
-    android:versionCode="13"
+    android:versionCode="22001"
     android:versionName="2.2.0-test.1">
 
     <!-- 需要网络权限，因为 Chart.js 从 CDN 加载 -->

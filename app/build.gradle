@@ -9,7 +9,7 @@ android {
         applicationId "com.lxsdq.app"
         minSdk 30
         targetSdk 31
-        versionCode 13
+        versionCode 22001
         versionName "2.2.0-test.1"
     }
 
