@@ -29,8 +29,8 @@ var PAGE_TO_ROUTE = {
 };
 var UPDATE_STATES = ['idle', 'checking', 'latest', 'update-available', 'network-error', 'service-error'];
 var config = {
-updateApiUrl: 'https://api.github.com/repos/sk1823841770-ship-it/jizhangben-app/releases',
-releasePageUrl: 'https://github.com/sk1823841770-ship-it/jizhangben-app/releases',
+  updateApiUrl: 'https://api.gitcode.com/api/v5/repos/gcw_rxskKFGK/mint-ledger-releases/releases',
+  releasePageUrl: 'https://gitcode.com/gcw_rxskKFGK/mint-ledger-releases/releases',
 requestTimeoutMs: 10000
 };
 var state = {
@@ -40,11 +40,13 @@ theme: readStorage(STORAGE_KEYS.theme) || 'mint',
 runtime: { versionName: '', versionCode: null },
 update: {
 status: 'idle',
-message: '检查更新',
-availableVersion: '',
-releaseNotes: '',
-releaseUrl: '',
-acknowledgedVersion: '',
+    message: '检查更新',
+    availableVersion: '',
+    availableVersionCode: null,
+    releaseNotes: '',
+    releaseUrl: '',
+    downloadUrl: '',
+    acknowledgedVersion: '',
 hasBadge: false
 }
 };
@@ -76,11 +78,13 @@ return null;
 }
 
 function persistUpdate() {
-writeStorage(STORAGE_KEYS.update, JSON.stringify({
-availableVersion: state.update.availableVersion,
-releaseNotes: state.update.releaseNotes,
-releaseUrl: state.update.releaseUrl,
-acknowledgedVersion: state.update.acknowledgedVersion
+  writeStorage(STORAGE_KEYS.update, JSON.stringify({
+    availableVersion: state.update.availableVersion,
+    availableVersionCode: state.update.availableVersionCode,
+    releaseNotes: state.update.releaseNotes,
+    releaseUrl: state.update.releaseUrl,
+    downloadUrl: state.update.downloadUrl,
+    acknowledgedVersion: state.update.acknowledgedVersion
 }));
 }
 
@@ -138,7 +142,26 @@ if (!left || !right) return null;
 if (left.major !== right.major) return left.major > right.major ? 1 : -1;
 if (left.minor !== right.minor) return left.minor > right.minor ? 1 : -1;
 if (left.patch !== right.patch) return left.patch > right.patch ? 1 : -1;
-return comparePrerelease(left.pre, right.pre);
+  return comparePrerelease(left.pre, right.pre);
+}
+
+function parseVersionCode(value) {
+  if (value === null || value === undefined || value === '') return null;
+  var normalized = String(value).trim();
+  if (!/^\d+$/.test(normalized)) return null;
+  var parsed = Number(normalized);
+  if (!isFinite(parsed) || parsed <= 0 || Math.floor(parsed) !== parsed || parsed > 9007199254740991) return null;
+  return parsed;
+}
+
+function compareCandidateToRuntime(version, versionCode) {
+  var candidateCode = parseVersionCode(versionCode);
+  var runtimeCode = parseVersionCode(state.runtime.versionCode);
+  if (candidateCode !== null && runtimeCode !== null) {
+    if (candidateCode === runtimeCode) return 0;
+    return candidateCode > runtimeCode ? 1 : -1;
+  }
+  return compareVersions(version, state.runtime.versionName);
 }
 
 function isElementOpen(element) {
@@ -318,9 +341,9 @@ view.hidden = view.getAttribute('data-update-state-view') !== state.update.statu
 });
 document.querySelectorAll('[data-update-control]').forEach(function (button) {
 var checking = state.update.status === 'checking';
-var action = state.update.status === 'update-available' && state.update.hasBadge
-? 'view-update'
-: 'check-update';
+    var action = state.update.status === 'update-available'
+      ? 'view-update'
+      : 'check-update';
 button.setAttribute('data-update-state', state.update.status);
 button.setAttribute('data-settings-action', action);
 button.disabled = checking;
@@ -403,7 +426,10 @@ return true;
 }
 
 function recomputeBadge() {
-var comparison = compareVersions(state.update.availableVersion, state.runtime.versionName);
+  var comparison = compareCandidateToRuntime(
+    state.update.availableVersion,
+    state.update.availableVersionCode
+  );
 state.update.hasBadge = !!state.update.availableVersion &&
 state.update.availableVersion !== state.update.acknowledgedVersion &&
 (comparison === null || comparison > 0);
@@ -412,16 +438,21 @@ state.update.availableVersion !== state.update.acknowledgedVersion &&
 function setRuntimeInfo(info) {
 if (!info || typeof info !== 'object') return false;
 if (info.versionName) state.runtime.versionName = normalizeVersion(info.versionName);
-if (info.versionCode !== undefined && info.versionCode !== null) {
-state.runtime.versionCode = parseInt(info.versionCode, 10);
-}
-var savedComparison = compareVersions(state.update.availableVersion, state.runtime.versionName);
+  if (info.versionCode !== undefined && info.versionCode !== null) {
+    state.runtime.versionCode = parseVersionCode(info.versionCode);
+  }
+  var savedComparison = compareCandidateToRuntime(
+    state.update.availableVersion,
+    state.update.availableVersionCode
+  );
 if (state.update.status === 'update-available' && savedComparison !== null && savedComparison <= 0) {
 state.update.status = 'idle';
-state.update.message = '检查更新';
-state.update.availableVersion = '';
-state.update.releaseNotes = '';
-state.update.releaseUrl = '';
+    state.update.message = '检查更新';
+    state.update.availableVersion = '';
+    state.update.availableVersionCode = null;
+    state.update.releaseNotes = '';
+    state.update.releaseUrl = '';
+    state.update.downloadUrl = '';
 persistUpdate();
 }
 recomputeBadge();
@@ -453,23 +484,47 @@ return true;
 }
 
 function releaseToCandidate(release) {
-if (!release || release.draft) return null;
-var version = normalizeVersion(release.tag_name || release.name);
-if (!parseVersion(version)) return null;
-return {
-version: version,
-prerelease: release.prerelease === true,
-notes: String(release.body || '').trim(),
-url: String(release.html_url || config.releasePageUrl)
-};
+  if (!release || release.draft) return null;
+  var tagName = String(release.tag_name || '').trim();
+  var version = normalizeVersion(tagName);
+  if (!parseVersion(version)) return null;
+  var assets = Array.isArray(release.assets) ? release.assets : [];
+  var apkAsset = null;
+  for (var index = 0; index < assets.length; index += 1) {
+    var asset = assets[index];
+    if (!asset || typeof asset !== 'object') continue;
+    var assetName = String(asset.name || '').trim();
+    var match = assetName.match(/^MintLedger-(.+)-(\d+)\.apk$/);
+    if (!match || normalizeVersion(match[1]) !== version) continue;
+    var assetVersionCode = parseVersionCode(match[2]);
+    var assetDownloadUrl = String(asset.browser_download_url || '').trim();
+    if (assetVersionCode === null || !/^https:\/\//i.test(assetDownloadUrl)) continue;
+    apkAsset = {
+      versionCode: assetVersionCode,
+      downloadUrl: assetDownloadUrl
+    };
+    break;
+  }
+  if (!apkAsset) return null;
+  var releaseUrl = String(release.html_url || '').trim();
+  if (!/^https:\/\//i.test(releaseUrl)) releaseUrl = config.releasePageUrl;
+  return {
+    version: version,
+    versionCode: apkAsset.versionCode,
+    prerelease: release.prerelease === true,
+    notes: String(release.body || '').trim(),
+    url: releaseUrl,
+    downloadUrl: apkAsset.downloadUrl
+  };
 }
 
 function findLatestRelease(releases, includePrerelease) {
 var candidates = (Array.isArray(releases) ? releases : []).map(releaseToCandidate).filter(function (candidate) {
 return candidate && (includePrerelease || !candidate.prerelease);
-});
-candidates.sort(function (left, right) {
-var comparison = compareVersions(left.version, right.version);
+  });
+  candidates.sort(function (left, right) {
+    if (left.versionCode !== right.versionCode) return right.versionCode - left.versionCode;
+    var comparison = compareVersions(left.version, right.version);
 return comparison === null ? 0 : -comparison;
 });
 return candidates[0] || null;
@@ -495,7 +550,7 @@ return Promise.resolve(cloneState().update);
 setUpdateState('checking', { message: '正在检查更新…' });
 var controller = typeof AbortController === 'function' ? new AbortController() : null;
 var timeoutId = controller ? setTimeout(function () { controller.abort(); }, config.requestTimeoutMs) : null;
-var options = { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' };
+  var options = { headers: { Accept: 'application/json' }, cache: 'no-store' };
 if (controller) options.signal = controller.signal;
 
 updateRequest = global.fetch(config.updateApiUrl, options).then(function (response) {
@@ -505,20 +560,24 @@ return response.json();
 var includePrerelease = currentVersion.indexOf('-') !== -1;
 var latest = findLatestRelease(releases, includePrerelease);
 if (!latest) throw new Error('No usable release metadata');
-var comparison = compareVersions(latest.version, currentVersion);
-if (comparison !== null && comparison > 0) {
-setUpdateState('update-available', {
-message: '发现新版本 ' + latest.version,
-availableVersion: latest.version,
-releaseNotes: latest.notes || '暂无更新说明',
-releaseUrl: latest.url
-});
+    var comparison = compareCandidateToRuntime(latest.version, latest.versionCode);
+    if (comparison !== null && comparison > 0) {
+      setUpdateState('update-available', {
+        message: '发现新版本 ' + latest.version,
+        availableVersion: latest.version,
+        availableVersionCode: latest.versionCode,
+        releaseNotes: latest.notes || '暂无更新说明',
+        releaseUrl: latest.url,
+        downloadUrl: latest.downloadUrl
+      });
 } else {
 setUpdateState('latest', {
-message: '已是最新版本',
-availableVersion: '',
-releaseNotes: '',
-releaseUrl: ''
+        message: '已是最新版本',
+        availableVersion: '',
+        availableVersionCode: null,
+        releaseNotes: '',
+        releaseUrl: '',
+        downloadUrl: ''
 });
 }
 return cloneState().update;
@@ -538,7 +597,7 @@ return updateRequest;
 }
 
 function openUpdatePage() {
-var url = state.update.releaseUrl || config.releasePageUrl;
+  var url = state.update.downloadUrl || state.update.releaseUrl || config.releasePageUrl;
 if (!/^https:\/\//i.test(url)) {
 setUpdateState('service-error', { message: '更新页面暂时不可用，请稍后重试' });
 return false;
@@ -609,10 +668,12 @@ state.route = activeSettingsPage.getAttribute('data-settings-screen');
 }
 var storedUpdate = parseStoredUpdate();
 if (storedUpdate) {
-var storedVersion = normalizeVersion(storedUpdate.availableVersion);
-if (parseVersion(storedVersion)) state.update.availableVersion = storedVersion;
-state.update.releaseNotes = String(storedUpdate.releaseNotes || '');
-state.update.releaseUrl = String(storedUpdate.releaseUrl || '');
+    var storedVersion = normalizeVersion(storedUpdate.availableVersion);
+    if (parseVersion(storedVersion)) state.update.availableVersion = storedVersion;
+    state.update.availableVersionCode = parseVersionCode(storedUpdate.availableVersionCode);
+    state.update.releaseNotes = String(storedUpdate.releaseNotes || '');
+    state.update.releaseUrl = String(storedUpdate.releaseUrl || '');
+    state.update.downloadUrl = String(storedUpdate.downloadUrl || '');
 state.update.acknowledgedVersion = normalizeVersion(storedUpdate.acknowledgedVersion);
 if (state.update.availableVersion) {
 state.update.status = 'update-available';

@@ -9,8 +9,8 @@ android {
         applicationId "com.lxsdq.app"
         minSdk 30
         targetSdk 31
-        versionCode 22002
-        versionName "2.2.0-test.2"
+        versionCode 22003
+        versionName "2.2.0-test.3"
     }
 
     buildTypes {
