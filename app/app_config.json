@@ -4,7 +4,7 @@
   "libraries": "[]",
   "useR8": false,
   "targetSdkVersion": 30.0,
-  "versionName": "2.2.0-test.3",
-  "versionCode": 22003.0,
+  "versionName": "2.2.0",
+  "versionCode": 22010.0,
   "zipAlignEnabled": false
 }
