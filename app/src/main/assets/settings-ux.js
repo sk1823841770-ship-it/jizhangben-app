@@ -518,16 +518,22 @@ function releaseToCandidate(release) {
   };
 }
 
-function findLatestRelease(releases, includePrerelease) {
-var candidates = (Array.isArray(releases) ? releases : []).map(releaseToCandidate).filter(function (candidate) {
-return candidate && (includePrerelease || !candidate.prerelease);
+function getUsableReleaseCandidates(releases) {
+return (Array.isArray(releases) ? releases : []).map(releaseToCandidate).filter(function (candidate) {
+return !!candidate;
   });
-  candidates.sort(function (left, right) {
+}
+
+function findLatestRelease(candidates, includePrerelease) {
+var eligibleCandidates = candidates.filter(function (candidate) {
+return includePrerelease || !candidate.prerelease;
+  });
+  eligibleCandidates.sort(function (left, right) {
     if (left.versionCode !== right.versionCode) return right.versionCode - left.versionCode;
     var comparison = compareVersions(left.version, right.version);
 return comparison === null ? 0 : -comparison;
-});
-return candidates[0] || null;
+  });
+return eligibleCandidates[0] || null;
 }
 
 function classifyUpdateError(error) {
@@ -557,11 +563,13 @@ updateRequest = global.fetch(config.updateApiUrl, options).then(function (respon
 if (!response.ok) throw new Error('Update service responded with ' + response.status);
 return response.json();
 }).then(function (releases) {
+if (!Array.isArray(releases)) throw new Error('Invalid release metadata');
 var includePrerelease = currentVersion.indexOf('-') !== -1;
-var latest = findLatestRelease(releases, includePrerelease);
-if (!latest) throw new Error('No usable release metadata');
-    var comparison = compareCandidateToRuntime(latest.version, latest.versionCode);
-    if (comparison !== null && comparison > 0) {
+var candidates = getUsableReleaseCandidates(releases);
+if (!candidates.length) throw new Error('No usable release metadata');
+var latest = findLatestRelease(candidates, includePrerelease);
+    var comparison = latest ? compareCandidateToRuntime(latest.version, latest.versionCode) : null;
+    if (latest && comparison !== null && comparison > 0) {
       setUpdateState('update-available', {
         message: '发现新版本 ' + latest.version,
         availableVersion: latest.version,
