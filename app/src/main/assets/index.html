@@ -2367,6 +2367,498 @@ transform: translateX(-50%) scale(0.94);
 box-shadow: 0 4px 12px rgba(47, 152, 115, 0.22);
 }
 
+/* ===== Settings V1：沿用现有薄荷绿视觉系统 ===== */
+.home-toolbar,
+.settings-header {
+display: flex;
+align-items: center;
+min-height: 44px;
+margin-bottom: var(--space-3);
+}
+
+.home-toolbar {
+justify-content: space-between;
+}
+
+.icon-button,
+.settings-back-button {
+position: relative;
+width: 44px;
+height: 44px;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+flex: 0 0 44px;
+padding: 0;
+border: none;
+border-radius: var(--radius-control);
+background: transparent;
+color: var(--text-primary);
+cursor: pointer;
+transition: background 140ms ease, transform 140ms ease, opacity 120ms ease;
+}
+
+.icon-button svg,
+.settings-back-button svg {
+width: 24px;
+height: 24px;
+}
+
+.settings-entry-button {
+background: var(--surface);
+box-shadow: 0 2px 10px rgba(26, 43, 36, 0.04);
+}
+
+.update-dot {
+width: 8px;
+height: 8px;
+flex: 0 0 8px;
+border-radius: 50%;
+background: var(--expense);
+box-shadow: 0 0 0 2px var(--surface);
+}
+
+.settings-entry-button .update-dot {
+position: absolute;
+top: 6px;
+right: 5px;
+}
+
+.update-dot[hidden],
+.settings-row-value[hidden],
+.settings-row-chevron[hidden] {
+display: none !important;
+}
+
+body.settings-route-active .nav-bar,
+body.settings-route-active .fab-btn {
+display: none;
+}
+
+body.settings-route-active .container {
+padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-6));
+}
+
+.settings-page {
+width: 100%;
+max-width: 520px;
+margin: 0 auto;
+}
+
+.settings-header {
+justify-content: space-between;
+}
+
+.settings-header-title {
+margin: 0;
+font-size: 22px;
+font-weight: 700;
+line-height: 1.35;
+letter-spacing: -0.3px;
+}
+
+.settings-header-spacer {
+width: 44px;
+height: 44px;
+flex: 0 0 44px;
+}
+
+.settings-group {
+margin-top: var(--space-5);
+}
+
+.settings-group:first-of-type {
+margin-top: var(--space-4);
+}
+
+.settings-group-label {
+margin: 0 0 var(--space-2);
+padding: 0 var(--space-1);
+color: var(--text-secondary);
+font-size: 13px;
+font-weight: 600;
+line-height: 1.4;
+}
+
+.settings-list-card,
+.settings-panel,
+.about-identity-card,
+.theme-option {
+overflow: hidden;
+border: 1px solid rgba(232, 236, 234, 0.78);
+border-radius: var(--radius-section);
+background: var(--surface);
+box-shadow: 0 2px 10px rgba(26, 43, 36, 0.025);
+}
+
+.settings-row {
+position: relative;
+width: 100%;
+min-height: 64px;
+display: flex;
+align-items: center;
+gap: var(--space-3);
+padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+border: none;
+background: var(--surface);
+color: var(--text-primary);
+text-align: left;
+cursor: pointer;
+}
+
+.settings-row.has-subtitle {
+min-height: 72px;
+}
+
+.settings-row + .settings-row::before {
+content: "";
+position: absolute;
+top: 0;
+left: 64px;
+right: 0;
+height: 1px;
+background: var(--divider);
+}
+
+.settings-row.is-plain + .settings-row.is-plain::before {
+left: var(--space-4);
+}
+
+.settings-row-icon {
+width: 36px;
+height: 36px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex: 0 0 36px;
+border-radius: var(--radius-control);
+background: var(--primary-light);
+color: var(--primary-dark);
+}
+
+.settings-row-icon svg {
+width: 20px;
+height: 20px;
+}
+
+.settings-row-copy {
+min-width: 0;
+flex: 1;
+}
+
+.settings-row-title {
+display: block;
+font-size: 16px;
+font-weight: 600;
+line-height: 1.4;
+}
+
+.settings-row-subtitle,
+.settings-row-value {
+color: var(--text-secondary);
+font-size: 13px;
+font-weight: 400;
+line-height: 1.4;
+}
+
+.settings-row-subtitle {
+display: block;
+margin-top: 2px;
+}
+
+.settings-row.is-static {
+cursor: default;
+}
+
+.settings-row-value {
+max-width: 52%;
+text-align: right;
+}
+
+.settings-row[data-update-state="latest"] .settings-row-value {
+color: var(--income);
+}
+
+.settings-row[data-update-state="update-available"] .settings-row-value {
+color: var(--expense);
+}
+
+.settings-row[data-update-state="network-error"] .settings-row-value,
+.settings-row[data-update-state="service-error"] .settings-row-value {
+color: var(--warning);
+}
+
+.settings-row[data-update-state="checking"] {
+cursor: wait;
+opacity: 0.72;
+}
+
+.settings-row[data-update-state="checking"] .settings-row-chevron,
+.settings-row[data-update-state="latest"] .settings-row-chevron {
+display: none;
+}
+
+[data-update-state-view][hidden] {
+display: none !important;
+}
+
+.settings-row:disabled {
+cursor: not-allowed;
+opacity: 0.58;
+}
+
+.settings-row-chevron {
+width: 20px;
+height: 20px;
+flex: 0 0 20px;
+color: #A6ADA9;
+}
+
+.settings-intro {
+margin: var(--space-5) 0 var(--space-4);
+}
+
+.settings-intro-title {
+margin: 0;
+font-size: 18px;
+font-weight: 700;
+line-height: 1.4;
+}
+
+.settings-intro-desc {
+margin: var(--space-1) 0 0;
+color: var(--text-secondary);
+font-size: 14px;
+line-height: 1.5;
+}
+
+.theme-option {
+width: 100%;
+min-height: 120px;
+display: flex;
+align-items: center;
+gap: var(--space-4);
+padding: var(--space-4);
+color: var(--text-primary);
+text-align: left;
+cursor: pointer;
+}
+
+.theme-option.selected {
+border: 2px solid var(--primary);
+}
+
+.theme-preview {
+width: 72px;
+height: 88px;
+display: flex;
+flex-direction: column;
+gap: 6px;
+flex: 0 0 72px;
+padding: 10px;
+border-radius: 14px;
+background: var(--primary-light);
+}
+
+.theme-preview-primary {
+height: 18px;
+border-radius: 9px;
+background: var(--primary);
+}
+
+.theme-preview-surface {
+flex: 1;
+border: 1px solid var(--divider);
+border-radius: 8px;
+background: var(--surface);
+}
+
+.theme-option-copy {
+min-width: 0;
+flex: 1;
+}
+
+.theme-option-title {
+display: block;
+font-size: 17px;
+font-weight: 600;
+line-height: 1.4;
+}
+
+.theme-option-desc {
+display: block;
+margin-top: 2px;
+color: var(--text-secondary);
+font-size: 13px;
+}
+
+.theme-current-badge {
+width: max-content;
+margin-top: var(--space-2);
+padding: 4px 10px;
+border-radius: 999px;
+background: var(--primary-light);
+color: var(--primary-dark);
+font-size: 12px;
+font-weight: 600;
+}
+
+.theme-selected-check {
+width: 28px;
+height: 28px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex: 0 0 28px;
+border-radius: 50%;
+background: var(--primary);
+color: #FFFFFF;
+}
+
+.theme-selected-check svg {
+width: 18px;
+height: 18px;
+}
+
+.settings-note,
+.backup-intro {
+margin-top: var(--space-4);
+border-radius: var(--radius-control);
+background: var(--primary-light);
+color: var(--primary-dark);
+}
+
+.settings-note {
+display: flex;
+align-items: center;
+gap: var(--space-2);
+padding: var(--space-3) var(--space-4);
+font-size: 13px;
+line-height: 1.5;
+}
+
+.settings-note svg {
+width: 18px;
+height: 18px;
+flex: 0 0 18px;
+}
+
+.backup-intro {
+padding: 18px var(--space-4);
+}
+
+.backup-intro-title {
+display: flex;
+align-items: center;
+gap: var(--space-2);
+color: var(--text-primary);
+font-size: 17px;
+font-weight: 600;
+}
+
+.backup-intro-title svg {
+width: 24px;
+height: 24px;
+color: var(--primary-dark);
+}
+
+.backup-intro-desc {
+margin: var(--space-2) 0 0;
+color: var(--text-secondary);
+font-size: 13px;
+line-height: 1.55;
+}
+
+.settings-panel {
+margin-top: var(--space-5);
+}
+
+.settings-footnote {
+margin: var(--space-4) var(--space-1) 0;
+color: var(--text-secondary);
+font-size: 13px;
+line-height: 1.5;
+}
+
+.about-identity-card {
+display: flex;
+flex-direction: column;
+align-items: center;
+margin-top: var(--space-5);
+padding: var(--space-5) var(--space-4);
+text-align: center;
+}
+
+.about-app-icon {
+width: 84px;
+height: 84px;
+display: block;
+border-radius: 22px;
+object-fit: cover;
+background: var(--primary-light);
+box-shadow: 0 6px 16px rgba(26, 43, 36, 0.08);
+}
+
+.about-app-name {
+margin-top: var(--space-3);
+font-size: 20px;
+font-weight: 700;
+line-height: 1.4;
+}
+
+.about-app-tagline {
+margin-top: var(--space-1);
+color: var(--text-secondary);
+font-size: 13px;
+line-height: 1.5;
+}
+
+.about-copy-card {
+padding: var(--space-5) var(--space-4);
+}
+
+.about-copy-card p {
+margin: 0;
+color: var(--text-secondary);
+font-size: 14px;
+line-height: 1.75;
+}
+
+.about-copy-card p + p {
+margin-top: var(--space-3);
+}
+
+.settings-row:focus-visible,
+.icon-button:focus-visible,
+.settings-back-button:focus-visible,
+.theme-option:focus-visible {
+outline: 2px solid var(--primary);
+outline-offset: 2px;
+}
+
+.settings-row:active,
+.icon-button:active,
+.settings-back-button:active,
+.theme-option:active {
+opacity: 0.86;
+transform: scale(0.98);
+}
+
+@media (max-width: 360px) {
+.settings-row {
+gap: var(--space-2);
+padding-left: var(--space-3);
+}
+.settings-row-value {
+max-width: 46%;
+font-size: 12px;
+}
+.theme-option {
+gap: var(--space-3);
+padding: var(--space-3);
+}
+}
+
 @media (min-width: 900px) {
 .container {
 padding-left: max(var(--space-4), calc((100vw - 760px) / 2));
@@ -2409,6 +2901,17 @@ transition-duration: 1ms !important;
 
 <!-- ===== 页面1：账单页 ===== -->
 <div id="page-bills" class="page active">
+
+<div class="home-toolbar">
+<h1 class="app-header-title">账单</h1>
+<button type="button" class="icon-button settings-entry-button" id="open-settings-button" data-settings-action="open-settings" aria-label="打开设置">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="12" cy="12" r="3"></circle>
+<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-2 3.46-.08-.02a1.65 1.65 0 0 0-1.79.2l-.54.31a1.65 1.65 0 0 0-.82 1.43V22h-4v-.08a1.65 1.65 0 0 0-.82-1.43l-.54-.31a1.65 1.65 0 0 0-1.79-.2l-.08.02-2-3.46.06-.06A1.65 1.65 0 0 0 4.6 15l-.31-.54a1.65 1.65 0 0 0-1.43-.82H2v-4h.86a1.65 1.65 0 0 0 1.43-.82l.31-.54a1.65 1.65 0 0 0-.2-1.79l-.06-.08 2-3.46.08.02a1.65 1.65 0 0 0 1.79-.2l.54-.31a1.65 1.65 0 0 0 .82-1.43V1h4v.08a1.65 1.65 0 0 0 .82 1.43l.54.31a1.65 1.65 0 0 0 1.79.2l.08-.02 2 3.46-.06.08a1.65 1.65 0 0 0-.2 1.79l.31.54a1.65 1.65 0 0 0 1.43.82H22v4h-.86a1.65 1.65 0 0 0-1.43.82L19.4 15z"></path>
+</svg>
+<span class="update-dot" id="settings-entry-update-dot" data-update-badge hidden aria-hidden="true"></span>
+</button>
+</div>
 
 <!-- 顶部概览卡片 -->
 <div class="overview-card">
@@ -2543,6 +3046,165 @@ transition-duration: 1ms !important;
 <div id="detail-list"></div>
 </div>
 
+</div>
+
+<!-- ===== Settings V1：设置主页 ===== -->
+<div id="page-settings" class="page settings-page" data-settings-screen="settings">
+<header class="settings-header">
+<button type="button" class="settings-back-button" data-settings-action="back" aria-label="返回账单页">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+</button>
+<h1 class="settings-header-title">设置</h1>
+<span class="settings-header-spacer" aria-hidden="true"></span>
+</header>
+
+<section class="settings-group" aria-labelledby="settings-appearance-label">
+<h2 class="settings-group-label" id="settings-appearance-label">外观</h2>
+<div class="settings-list-card">
+<button type="button" class="settings-row has-subtitle" data-settings-action="open-theme">
+<span class="settings-row-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 2.2 2.2 0 0 0 2.2-2.2c0-.6-.24-1.16-.64-1.56A2.2 2.2 0 0 1 15.12 12H17a4 4 0 0 0 0-8h-5Z"></path><circle cx="7.5" cy="10" r=".7" fill="currentColor" stroke="none"></circle><circle cx="10" cy="6.8" r=".7" fill="currentColor" stroke="none"></circle></svg>
+</span>
+<span class="settings-row-copy"><span class="settings-row-title">主题</span><span class="settings-row-subtitle">薄荷绿（默认）</span></span>
+<svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+</button>
+</div>
+</section>
+
+<section class="settings-group" aria-labelledby="settings-data-label">
+<h2 class="settings-group-label" id="settings-data-label">数据</h2>
+<div class="settings-list-card">
+<button type="button" class="settings-row has-subtitle" data-settings-action="open-backup">
+<span class="settings-row-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-11Z"></path><path d="M8 4v6h8V4M8 20v-6h8v6"></path></svg>
+</span>
+<span class="settings-row-copy"><span class="settings-row-title">备份与恢复</span><span class="settings-row-subtitle">暂未开放，后续版本支持</span></span>
+<svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+</button>
+</div>
+</section>
+
+<section class="settings-group" aria-labelledby="settings-about-label">
+<h2 class="settings-group-label" id="settings-about-label">关于</h2>
+<div class="settings-list-card">
+<button type="button" class="settings-row has-subtitle" data-settings-action="open-about">
+<span class="settings-row-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 10v6M12 7h.01"></path></svg>
+</span>
+<span class="settings-row-copy"><span class="settings-row-title">关于</span><span class="settings-row-subtitle">版本、更新与产品信息</span></span>
+<span class="update-dot" id="settings-about-update-dot" data-update-badge hidden aria-hidden="true"></span>
+<svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+</button>
+</div>
+</section>
+</div>
+
+<!-- ===== Settings V1：主题 ===== -->
+<div id="page-theme" class="page settings-page" data-settings-screen="theme">
+<header class="settings-header">
+<button type="button" class="settings-back-button" data-settings-action="back" aria-label="返回设置">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+</button>
+<h1 class="settings-header-title">主题</h1>
+<span class="settings-header-spacer" aria-hidden="true"></span>
+</header>
+<div class="settings-intro">
+<h2 class="settings-intro-title">选择主题</h2>
+<p class="settings-intro-desc">第一版先保留最熟悉的薄荷绿</p>
+</div>
+<button type="button" class="theme-option selected" aria-pressed="true" data-settings-action="select-theme" data-theme-value="mint">
+<span class="theme-preview" aria-hidden="true"><span class="theme-preview-primary"></span><span class="theme-preview-surface"></span></span>
+<span class="theme-option-copy"><span class="theme-option-title">薄荷绿</span><span class="theme-option-desc">默认主题</span><span class="theme-current-badge">当前</span></span>
+<span class="theme-selected-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg></span>
+</button>
+<div class="settings-note">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 10v6M12 7h.01"></path></svg>
+<span>以后新增主题会继续显示在这里</span>
+</div>
+</div>
+
+<!-- ===== Settings V1：备份与恢复视觉壳 ===== -->
+<div id="page-backup" class="page settings-page" data-settings-screen="backup">
+<header class="settings-header">
+<button type="button" class="settings-back-button" data-settings-action="back" aria-label="返回设置">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+</button>
+<h1 class="settings-header-title">备份与恢复</h1>
+<span class="settings-header-spacer" aria-hidden="true"></span>
+</header>
+<section class="backup-intro" aria-labelledby="backup-intro-title">
+<div class="backup-intro-title" id="backup-intro-title">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+<span>保护你的账单数据</span>
+</div>
+<p class="backup-intro-desc">备份与恢复功能暂未开放，将在后续版本中提供。</p>
+</section>
+<div class="settings-panel">
+<button type="button" class="settings-row has-subtitle" disabled aria-disabled="true">
+<span class="settings-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path></svg></span>
+<span class="settings-row-copy"><span class="settings-row-title">备份数据</span><span class="settings-row-subtitle">暂未开放</span></span>
+</button>
+<button type="button" class="settings-row has-subtitle" disabled aria-disabled="true">
+<span class="settings-row-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9M7 16l5 5 5-5M5 10V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5"></path></svg></span>
+<span class="settings-row-copy"><span class="settings-row-title">恢复数据</span><span class="settings-row-subtitle">暂未开放</span></span>
+</button>
+</div>
+<p class="settings-footnote">当前版本不会读取、导出或恢复任何备份文件。</p>
+</div>
+
+<!-- ===== Settings V1：关于 ===== -->
+<div id="page-about" class="page settings-page" data-settings-screen="about">
+<header class="settings-header">
+<button type="button" class="settings-back-button" data-settings-action="back" aria-label="返回设置">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+</button>
+<h1 class="settings-header-title">关于</h1>
+<span class="settings-header-spacer" aria-hidden="true"></span>
+</header>
+<section class="about-identity-card" aria-labelledby="about-app-name">
+<img class="about-app-icon" src="app-icon.jpg" alt="">
+<div class="about-app-name" id="about-app-name">薄荷绿记账</div>
+<div class="about-app-tagline">简单、清晰地记好每一笔</div>
+</section>
+<div class="settings-panel">
+<div class="settings-row is-plain is-static">
+<span class="settings-row-copy"><span class="settings-row-title">当前版本</span></span>
+<span class="settings-row-value" data-settings-current-version>浏览器预览（未注入 Android 版本）</span>
+</div>
+<button type="button" class="settings-row is-plain" id="about-update-row" data-update-control data-settings-action="check-update" data-update-state="idle">
+<span class="settings-row-copy"><span class="settings-row-title">软件更新</span></span>
+<span class="settings-row-value" id="about-update-status" aria-live="polite">
+<span data-update-state-view="idle" data-update-status-text>检查更新</span>
+<span data-update-state-view="checking" data-update-status-text hidden>正在检查更新…</span>
+<span data-update-state-view="latest" data-update-status-text hidden>已是最新版本</span>
+<span data-update-state-view="update-available" data-update-status-text hidden>发现新版本</span>
+<span data-update-state-view="network-error" data-update-status-text hidden>网络连接失败，请稍后重试</span>
+<span data-update-state-view="service-error" data-update-status-text hidden>暂时无法检查更新，请稍后重试</span>
+</span>
+<span class="update-dot" id="about-update-dot" data-update-badge hidden aria-hidden="true"></span>
+<svg class="settings-row-chevron" id="about-update-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+</button>
+<button type="button" class="settings-row is-plain" data-settings-action="open-product-about">
+<span class="settings-row-copy"><span class="settings-row-title">关于薄荷绿记账</span></span>
+<svg class="settings-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+</button>
+</div>
+<p class="settings-footnote">当前页面只展示更新状态，不包含自动下载。</p>
+</div>
+
+<!-- ===== Settings V1：产品介绍 ===== -->
+<div id="page-product-about" class="page settings-page" data-settings-screen="product-about">
+<header class="settings-header">
+<button type="button" class="settings-back-button" data-settings-action="back" aria-label="返回关于">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+</button>
+<h1 class="settings-header-title">关于薄荷绿记账</h1>
+<span class="settings-header-spacer" aria-hidden="true"></span>
+</header>
+<section class="settings-panel about-copy-card">
+<p>薄荷绿记账是一款专注于日常收支记录的轻量记账 App。</p>
+<p>我们希望用清晰的账单、统计与预算信息，帮助你更轻松地了解每一笔钱的去向。</p>
+</section>
 </div>
 
 <!-- ===== 底部导航栏 ===== -->
@@ -4632,5 +5294,6 @@ initializeOptionSheets();
 updateHomeFilterControls();
 });
 </script>
+<script src="settings-ux.js" data-settings-ux-loader></script>
 </body>
 </html>
